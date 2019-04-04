@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "plugins": [{
-      "name": "typescript-tslint-plugin"
-    }],
+    "plugins": [
+      {
+        "name": "typescript-tslint-plugin"
+      }
+    ],
     "outDir": "build/dist",
     "module": "esnext",
     "target": "es5",

@@ -12,6 +12,7 @@ import { ApplicationData } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
 import { BackgroundTasks } from "./BackgroundTasks";
 import { HeaderController } from "./HeaderController";
+import { Swap } from "./Swap";
 
 const ScrollToTop = withRouter(ScrollToTopWithoutRouter);
 
@@ -34,7 +35,7 @@ class AppClass extends React.Component<Props, State> {
 
                         <div>
                             {_catch_(<HeaderController />)}
-                            {/* <Route path="/loading" component={LoadingPage} /> */}
+                            {_catch_(<Swap />)}
                             {_catch_(<FeedbackButton url="#" />)}
                         </div>
                     </div>
