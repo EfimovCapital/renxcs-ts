@@ -5,6 +5,24 @@
     justify-content: center;
     text-align: center;
 
+    .button:disabled {
+        color: white;
+    }
+
+    .checking {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+
+        >* {
+            margin-right: 10px;
+        }
+    }
+
+    .button--white:disabled {
+        color: $blue-bright;
+    }
+
     .red {
         color: $red;
     }
