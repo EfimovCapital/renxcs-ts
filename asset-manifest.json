@@ -1,15 +1,16 @@
 {
-  "main.css": "/renxcs-ts/static/css/main.4c7114a1.chunk.css",
-  "main.js": "/renxcs-ts/static/js/main.0b96ec85.chunk.js",
-  "main.js.map": "/renxcs-ts/static/js/main.0b96ec85.chunk.js.map",
+  "main.css": "/renxcs-ts/static/css/main.5c4f96ca.chunk.css",
+  "main.js": "/renxcs-ts/static/js/main.96457f51.chunk.js",
+  "main.js.map": "/renxcs-ts/static/js/main.96457f51.chunk.js.map",
   "runtime~main.js": "/renxcs-ts/static/js/runtime~main.9e94aeb8.js",
   "runtime~main.js.map": "/renxcs-ts/static/js/runtime~main.9e94aeb8.js.map",
-  "static/js/2.010e2ea2.chunk.js": "/renxcs-ts/static/js/2.010e2ea2.chunk.js",
-  "static/js/2.010e2ea2.chunk.js.map": "/renxcs-ts/static/js/2.010e2ea2.chunk.js.map",
+  "static/js/2.1d1a1d7b.chunk.js": "/renxcs-ts/static/js/2.1d1a1d7b.chunk.js",
+  "static/js/2.1d1a1d7b.chunk.js.map": "/renxcs-ts/static/js/2.1d1a1d7b.chunk.js.map",
   "index.html": "/renxcs-ts/index.html",
-  "precache-manifest.fca692eaca0df3a5a458d84e0a56f7cb.js": "/renxcs-ts/precache-manifest.fca692eaca0df3a5a458d84e0a56f7cb.js",
+  "precache-manifest.42869e60da2ebbe6e89fbf566af94fc7.js": "/renxcs-ts/precache-manifest.42869e60da2ebbe6e89fbf566af94fc7.js",
   "service-worker.js": "/renxcs-ts/service-worker.js",
-  "static/css/main.4c7114a1.chunk.css.map": "/renxcs-ts/static/css/main.4c7114a1.chunk.css.map",
+  "static/css/main.5c4f96ca.chunk.css.map": "/renxcs-ts/static/css/main.5c4f96ca.chunk.css.map",
   "static/media/logo.3e204930.svg": "/renxcs-ts/static/media/logo.3e204930.svg",
+  "static/media/metamask.035b2edd.svg": "/renxcs-ts/static/media/metamask.035b2edd.svg",
   "static/media/rp-flag-uk.e021baf7.svg": "/renxcs-ts/static/media/rp-flag-uk.e021baf7.svg"
 }
