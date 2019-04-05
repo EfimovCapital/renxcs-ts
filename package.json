@@ -25,7 +25,8 @@
     "redux-logger": "^3.0.6",
     "redux-persist": "^5.10.0",
     "redux-thunk": "^2.3.0",
-    "typesafe-actions": "^4.0.0"
+    "typesafe-actions": "^4.0.0",
+    "web3": "^1.0.0-beta.52"
   },
   "devDependencies": {
     "@types/bs58": "^4.0.0",

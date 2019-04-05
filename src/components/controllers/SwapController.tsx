@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import Web3 from "web3";
+
 import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -7,6 +9,40 @@ import { bindActionCreators, Dispatch } from "redux";
 import { createTestnetAddress, getTestnetUTXOs, UTXO } from "../../lib/btc/btc";
 import { addToRedeemedUTXOs, setEthereumAddress } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
+
+import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
+
+declare global {
+    interface Window {
+        // tslint:disable-next-line: no-any
+        ethereum: any;
+        // tslint:disable-next-line: no-any
+        web3: any;
+    }
+}
+
+const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
+    // Modern dApp browsers...
+    if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        try {
+            // Request account access if needed
+            await window.ethereum.enable();
+            resolve(window.web3);
+
+        } catch (error) {
+            reject(error);
+        }
+    } else if (window.web3) {
+        // Legacy dApp browsers...
+        window.web3 = new Web3(window.web3.currentProvider);
+        // Accounts always exposed
+        resolve(window.web3);
+    } else {
+        // Non-dApp browsers...
+        reject("Non-Ethereum browser detected. You should consider trying MetaMask!");
+    }
+});
 
 export const SwapControllerClass = (props: Props) => {
     const { store: { ethereumAddress, redeemedUTXOs } } = props;
@@ -61,7 +97,7 @@ export const SwapControllerClass = (props: Props) => {
         try {
             const newUTXOs = await getTestnetUTXOs(depositAddress, 10, 0);
             setUTXOs(newUTXOs);
-        } catch (err) {
+        } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
         }
         setChecking(false);
@@ -78,13 +114,26 @@ export const SwapControllerClass = (props: Props) => {
         }, 2000);
     };
 
+    const getMetaMaskAddress = async () => {
+        try {
+            const web3 = await getWeb3();
+            const addresses = await web3.eth.getAccounts();
+            props.actions.setEthereumAddress(addresses[0]);
+        } catch (error) {
+            setError(`${error && error.toString ? error.toString() : error}`);
+        }
+    };
+
     const showRedeemButton = utxos.reduce<boolean>((carry, e) => carry || !redeemedUTXOs.contains(e.txHash), false);
 
     return <div className="swap container">
         <div className="swap--inner">
             <div>
                 Enter address to receive to:{" "}
-                <input type="text" value={ethereumAddress} onChange={onChange} />
+                <div className="swap--eth--input">
+                    <input type="text" value={ethereumAddress} onChange={onChange} />
+                    <button className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
+                </div>
             </div>
             {error ? <p className="red">{error}</p> : null}
 

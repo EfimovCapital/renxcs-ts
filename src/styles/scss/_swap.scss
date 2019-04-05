@@ -94,6 +94,23 @@
     .utxo--txid {
         opacity: 0.5;
     }
+
+    .swap--eth--input {
+        display: flex;
+    }
+
+    .metamask-logo {
+        width: 40px;
+        min-width: 40px;
+        background: white;
+        padding: 0;
+        height: 37px;
+        border-left: 0;
+
+        svg {
+            width: 20px;
+        }
+    }
 }
 
 .tag {
