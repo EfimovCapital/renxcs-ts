@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_ } from "../../lib/errors";
-import { storeQuoteCurrency } from "../../store/actions/general/generalActions";
+import { setQuoteCurrency } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
 
@@ -78,7 +78,7 @@ class HeaderControllerClass extends React.Component<Props, State> {
     }
 
     private readonly setCurrency = (quoteCurrency: Currency): void => {
-        this.props.actions.storeQuoteCurrency(quoteCurrency);
+        this.props.actions.setQuoteCurrency(quoteCurrency);
     }
 
     private readonly setLanguage = (language: string): void => {
@@ -94,7 +94,7 @@ const mapStateToProps = (state: ApplicationData) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
-        storeQuoteCurrency,
+        setQuoteCurrency,
     }, dispatch)
 });
 

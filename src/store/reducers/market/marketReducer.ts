@@ -16,7 +16,7 @@ export const marketReducer = (state: MarketPriceData = new MarketPriceData(), ac
         case getType(marketActions.pricesUpdating):
             return state.set("updating", action.payload);
 
-        case getType(marketActions.storeTokenPrices):
+        case getType(marketActions.setTokenPrices):
             return state.set("tokenPrices", action.payload.tokenPrices);
 
         default:

@@ -15,7 +15,7 @@ export const updatePrices = createStandardAction("UPDATE_PRICES")<{
 
 export const pricesUpdating = createStandardAction("PRICES_UPDATING")<boolean>();
 
-export const storeTokenPrices = createStandardAction("STORE_TOKEN_PRICES")<{ tokenPrices: TokenPrices }>();
+export const setTokenPrices = createStandardAction("STORE_TOKEN_PRICES")<{ tokenPrices: TokenPrices }>();
 
 export const updateTokenPrices = () => async (dispatch: Dispatch) => new Promise((resolve, reject) => {
     dispatch(pricesUpdating(true));
@@ -23,7 +23,7 @@ export const updateTokenPrices = () => async (dispatch: Dispatch) => new Promise
         try {
             const tokenPrices = await getTokenPricesInCurrencies();
             dispatch(pricesUpdating(false));
-            dispatch(storeTokenPrices({ tokenPrices }));
+            dispatch(setTokenPrices({ tokenPrices }));
         } catch (error) {
             dispatch(pricesUpdating(false));
             reject(error);

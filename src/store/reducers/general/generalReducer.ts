@@ -9,8 +9,14 @@ type GeneralActions = ActionType<typeof generalActions>;
 // tslint:disable-next-line: cyclomatic-complexity
 export const generalReducer = (state: GeneralData = new GeneralData(), action: GeneralActions) => {
     switch (action.type) {
-        case getType(generalActions.storeQuoteCurrency):
+        case getType(generalActions.setQuoteCurrency):
             return state.set("quoteCurrency", action.payload);
+
+        case getType(generalActions.setEthereumAddress):
+            return state.set("ethereumAddress", action.payload);
+
+        case getType(generalActions.addToRedeemedUTXOs):
+            return state.set("redeemedUTXOs", state.redeemedUTXOs.add(action.payload));
 
         default:
             return state;
