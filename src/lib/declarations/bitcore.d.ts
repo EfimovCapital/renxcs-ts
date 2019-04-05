@@ -401,6 +401,7 @@ declare module "bitcore-lib" {
         readonly hashBuffer: Buffer;
         readonly network: Networks.Network;
         readonly type: string;
+        readonly toString(): string;
 
         constructor(data: Buffer | Uint8Array | string | object, network?: Networks.Network, type?: string);
     }
