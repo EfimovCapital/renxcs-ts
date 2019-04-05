@@ -1,6 +1,6 @@
 import Axios from "axios";
 
-import { Networks, Opcode, Script } from "bitcore-lib";
+import { encoding, Networks, Opcode, Script } from "bitcore-lib";
 
 export const testnetMasterPKH = new Buffer("e02cabac3a62655335b1227dfdecfff27b5f6111", "hex");
 
@@ -59,3 +59,6 @@ export interface FormattedUTXO extends UTXO {
 //         formatted: true,
 //     };
 // };
+
+export const toBase58 = (hex: string): string =>
+    (new encoding.Base58({ buf: Buffer.from(hex, "hex") })).toString();

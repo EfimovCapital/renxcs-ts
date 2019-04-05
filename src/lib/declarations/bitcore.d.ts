@@ -130,6 +130,32 @@ declare module "bitcore-lib" {
         OP_INVALIDOPCODE = 255,
     }
 
+    export namespace encoding {
+        class Base58 {
+            constructor(data?: { buf: Buffer } | string);
+            set(data: { buf: Buffer } | string);
+
+            validCharacters: Function;
+            encode: Function;
+            decode: Function;
+        }
+
+        class Base58Check {
+            validChecksum: Function;
+            decode: Function;
+            checksum: Function;
+            encode: Function;
+        };
+
+        BufferReader: Function;
+        class BufferWriter {
+            varintBufNum: Function;
+            varintBufBN: Function
+        };
+        BufferReader: () => BufferWriter;
+        Varint: Function;
+    }
+
     export namespace crypto {
         class BN { }
 

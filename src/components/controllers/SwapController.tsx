@@ -106,10 +106,10 @@ export const SwapControllerClass = (props: Props) => {
                 <h3>Deposits found:</h3>
                 {utxos.map((utxo) => {
                     const redeemingUTXO = redeemedUTXOs.contains(utxo.txHash);
-                    return <div className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} key={utxo.txHash}>
-                        <span>Deposited {utxo.amount / (10 ** 8)} BTC{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
+                    return <a key={utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.txHash}`}>
+                        <span>Deposited <b>{utxo.amount / (10 ** 8)} BTC</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
                         <span className="utxo--txid">{utxo.txHash}</span>
-                    </div>;
+                    </a>;
                 })}
                 {showRedeemButton ?
                     <button disabled={redeeming} className="button" onClick={onRedeem}>{redeeming ? <div className="checking"><Loading alt={true} /> Pretending to do stuff...</div> : <>Redeem</>}</button> :
