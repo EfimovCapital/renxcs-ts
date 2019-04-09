@@ -45,6 +45,7 @@
         "match-default-export-name": false,
         "function-name": false,
         "no-return-await": false,
+        "interface-over-type-literal": false,
         // "ter-indent": false,
 
         // Warnings
@@ -76,7 +77,9 @@
         "react-this-binding-issue": true,
         "no-string-based-set-timeout": true,
         "no-unnecessary-type-assertion": true,
-        "no-unused-variable": true,
+        "no-unused-variable": [true, {
+            "ignore-pattern": "^_"
+        }],
         "only-arrow-functions": true,
 
         // Configured

@@ -1,0 +1,183 @@
+import axios, { AxiosResponse } from "axios";
+
+import { MultiAddress } from "../types/types";
+import {
+    AddressesRequest,
+    AddressesResponse,
+    EpochResponse,
+    HealthResponse,
+    NumPeersResponse,
+    PeersResponse,
+    ReceiveMessageRequest,
+    ReceiveMessageResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+} from "./types";
+
+export class Darknode {
+    private readonly url: string;
+
+    constructor(multiAddress: MultiAddress) {
+        if (multiAddress.multiAddress.charAt(0) === "/") {
+            try {
+                const [_, _ip4, ip, _tcp, port, _ren, _id] = multiAddress.multiAddress.split("/");
+                // tslint:disable-next-line: no-http-string
+                this.url = `http://${ip}:${port}`;
+            } catch (error) {
+                throw new Error(`Malformatted multiAddress: ${multiAddress}`);
+            }
+        } else {
+            this.url = multiAddress.multiAddress;
+        }
+    }
+
+    public async getHealth(): Promise<HealthResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_healthCheck"));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as HealthResponse;
+    }
+
+    public async getPeers(): Promise<PeersResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryPeers"));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as PeersResponse;
+    }
+
+    public async getNumberOfPeers(): Promise<NumPeersResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryNumPeers"));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as NumPeersResponse;
+    }
+
+    public async getEpoch(): Promise<EpochResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryEpoch"));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as EpochResponse;
+    }
+
+    public async getAddresses(request: AddressesRequest): Promise<AddressesResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryAddresses", request));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as AddressesResponse;
+    }
+
+    public async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_sendMessage", request));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as SendMessageResponse;
+    }
+
+    public async receiveMessage(request: ReceiveMessageRequest): Promise<ReceiveMessageResponse> {
+        let resp;
+        try {
+            resp = await axios.post(`${this.url}`, this.generatePayload("ren_receiveMessage", request));
+            if (resp.status !== 200) {
+                throw this.responseError("Unexpected status code returned by Darknode", resp);
+            }
+        } catch (error) {
+            if (error.response) {
+                throw new Error(
+                    `Darknode returned status ${error.response.status} with reason: ${error.response.data}`,
+                );
+            } else {
+                throw error;
+            }
+        }
+        return resp.data as ReceiveMessageResponse;
+    }
+
+    private generatePayload(method: string, params?: unknown) {
+        return {
+            id: 1,
+            jsonrpc: "2.0",
+            method,
+            params: params ? [params] : [],
+            version: "0.0",
+        };
+    }
+
+    private responseError(msg: string, response: AxiosResponse) {
+        const error = new Error(msg);
+        // tslint:disable-next-line: no-any
+        (error as any).response = response;
+        return error;
+    }
+}
