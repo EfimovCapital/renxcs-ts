@@ -7,7 +7,8 @@ export interface Param {
 
 export interface Payload {
     method: string;
-    params: Param[];
+    // tslint:disable-next-line: no-any
+    args: any; // Param[];
 }
 
 // Requests

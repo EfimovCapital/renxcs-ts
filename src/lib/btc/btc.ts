@@ -2,7 +2,7 @@ import Axios from "axios";
 
 import { encoding, Networks, Opcode, Script } from "bitcore-lib";
 
-const testnetMasterPKH = new Buffer("e02cabac3a62655335b1227dfdecfff27b5f6111", "hex");
+const testnetMasterPKH = new Buffer("be8d41d9e47170a33d7d758ebf853551dea63ab8", "hex");
 
 const createAddress = ({ mainnet, masterPKH }: { mainnet: boolean, masterPKH: Buffer }) =>
     (address: string) =>

@@ -71,7 +71,7 @@ class BackgroundTasksClass extends React.Component<Props, State> {
     private readonly callBootstrap = async (): Promise<void> => {
         let delay = 60 * 60;
         try {
-            await this.props.store.darknodeGroup.bootstrap();
+            // await this.props.store.darknodeGroup.bootstrap();
         } catch (error) {
             _captureBackgroundException_(error, {
                 description: "Error thrown in callBootstrap background task",

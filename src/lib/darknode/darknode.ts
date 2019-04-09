@@ -15,14 +15,17 @@ import {
 } from "./types";
 
 export class Darknode {
+    public multiAddress: MultiAddress;
     private readonly url: string;
 
     constructor(multiAddress: MultiAddress) {
+        this.multiAddress = multiAddress;
         if (multiAddress.multiAddress.charAt(0) === "/") {
             try {
                 const [_, _ip4, ip, _tcp, port, _ren, _id] = multiAddress.multiAddress.split("/");
+                const fixedPort = port === "18514" ? "18515" : port;
                 // tslint:disable-next-line: no-http-string
-                this.url = `http://${ip}:${port}`;
+                this.url = `http://${ip}:${fixedPort}`;
             } catch (error) {
                 throw new Error(`Malformatted multiAddress: ${multiAddress}`);
             }
@@ -164,7 +167,7 @@ export class Darknode {
         return resp.data as ReceiveMessageResponse;
     }
 
-    private generatePayload(method: string, params: unknown = []) {
+    private generatePayload(method: string, params?: unknown) {
         return {
             id: 1,
             jsonrpc: "2.0",

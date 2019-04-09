@@ -18,6 +18,12 @@ export const generalReducer = (state: GeneralData = new GeneralData(), action: G
         case getType(generalActions.addToRedeemedUTXOs):
             return state.set("redeemedUTXOs", state.redeemedUTXOs.add(action.payload));
 
+        case getType(generalActions.addToRenVMMessages):
+            return state.set("renVMMessages", state.renVMMessages.set(action.payload.utxo, action.payload.messages));
+
+        case getType(generalActions.addToSignatures):
+            return state.set("signatures", state.signatures.set(action.payload.utxo, action.payload.signature));
+
         default:
             return state;
     }

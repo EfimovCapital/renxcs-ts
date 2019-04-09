@@ -9,7 +9,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.8.1",
     "@fortawesome/free-solid-svg-icons": "^5.8.1",
     "@fortawesome/react-fontawesome": "^0.1.4",
-    "@renex/react-components": "^1.0.17",
+    "@renex/react-components": "^1.0.18",
     "@sentry/browser": "^5.0.5",
     "@sentry/core": "^5.0.5",
     "axios": "^0.18.0",

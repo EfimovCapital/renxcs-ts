@@ -1,4 +1,4 @@
-import { List, Set } from "immutable";
+import { List, Map, Set } from "immutable";
 
 /**
  * TYPE can be (recursively defined):
@@ -13,6 +13,7 @@ type TYPE = string;
 const isArrayType = (type: TYPE) => type.slice(-2) === "[]";
 const isListType = (type: TYPE) => type.slice(0, 5) === "List<" && type.slice(-1) === ">";
 const isSetType = (type: TYPE) => type.slice(0, 4) === "Set<" && type.slice(-1) === ">";
+const isMapType = (type: TYPE) => type.slice(0, 12) === "Map<string, " && type.slice(-1) === ">";
 
 /**
  * validateType takes two parameters - a target type and a value, and checks
@@ -42,6 +43,9 @@ export const validateType = (type: TYPE, object: unknown): unknown => {
     } else if (isSetType(type)) {
         const subtype = type.slice(4, -1);
         return Set((object as unknown[]).map((e) => validateType(subtype, e)));
+    } else if (isMapType(type)) {
+        const subtype = type.slice(12, -1);
+        return Map(object as { [key: string]: {}; }).map(e => validateType(subtype, e));
     }
     if (typeof object === type) {
         return object;

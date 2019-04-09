@@ -31,30 +31,67 @@
         margin-bottom: 20px;
     }
 
-    .swap--inner {
-        padding: 30px;
+    .swap--inner,
+    .deposits {
+        width: 100%;
         border-radius: 16px;
-        background-color: #EBEDF2;
     }
 
-    .swap--inner>* {
+    .swap--inner {
+        box-shadow: 0 1px 6px 0 rgba(32, 33, 36, 0.28);
+        font-size: 18px;
+
+        &.btc {
+            background-color: #f7931a !important;
+            color: white;
+        }
+
+        &.zec {
+            background-color: rgb(35, 31, 32) !important;
+            color: white;
+        }
+
+        &.eth {
+            background-color: #627eea !important;
+            color: white;
+        }
+    }
+
+    .deposits {
+        // margin-top: -20px;
+        background-color: white;
+        padding: 0;
+        width: 100%;
+    }
+
+    .swap--inner>*,
+    .deposits>* {
         &:not(:last-child) {
             margin-bottom: 20px;
         }
     }
 
     .swap--inner>div,
-    .swap--inner>a {
+    .swap--inner>a,
+    .deposits>div,
+    .deposits>a {
+        width: calc(100% - 40px);
         display: flex;
         justify-content: space-between;
         align-items: center;
 
-        background-color: white;
         border: 1px solid #eee;
         padding: 20px;
-        width: 500px;
         flex-grow: 1;
         box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.1);
+    }
+
+    .swap--inner>div,
+    .swap--inner>a {
+        box-shadow: none;
+        border: none;
+        border-radius: 16px;
+        display: block;
     }
 
     h3 {
@@ -65,11 +102,12 @@
         text-align: left;
     }
 
-    .swap--inner .utxo {
+    .deposits .utxo {
         flex-flow: column;
         font-size: 14px;
         align-items: flex-start;
         text-decoration: none;
+        width: 100%;
 
         >*+* {
             margin-top: 5px;
@@ -95,17 +133,103 @@
         opacity: 0.5;
     }
 
+    .swap--eth--form {
+        width: 100%;
+    }
+
     .swap--eth--input {
         display: flex;
+
+        border: 1px solid black;
+        background: #fff;
+        display: flex;
+        border-radius: 8px;
+        border: 1px solid #dfe1e5;
+        box-shadow: none;
+        border-radius: 24px;
+        z-index: 3;
+        height: 44px;
+        width: 100%;
+
+        &:hover {
+            box-shadow: 0 1px 6px 0 rgba(32, 33, 36, 0.28);
+            // border-color: rgba(223, 225, 229, 0);
+        }
+
+        input[type=text] {
+            height: 100%;
+            flex-grow: 1;
+            background: none;
+            border: none;
+            padding-left: 25px;
+        }
+    }
+
+    .currencies {
+        display: flex;
+        align-items: flex-start;
+        width: calc(100% + 20px);
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .currency {
+        cursor: pointer;
+        width: 150px;
+        height: 90px;
+        box-shadow: 4px 5px 10px 0 rgba(100, 100, 100, 0.28);
+        border-radius: 16px;
+        margin: 0 10px;
+        color: white;
+        background: #f7931a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {
+            box-shadow: 5px 6px 10px 0 rgba(100, 100, 100, 0.28);
+        }
+
+        svg {
+            transform: scale(4);
+        }
+
+        &.zec {
+            background: rgb(35, 31, 32);
+        }
+
+        &.eth {
+            background: #627eea;
+        }
+    }
+
+    .swap--eth--submit {
+        flex-grow: 0;
+        width: 80px;
+        min-width: 80px;
+        padding: 0;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+        font-weight: 900;
     }
 
     .metamask-logo {
-        width: 40px;
-        min-width: 40px;
-        background: white;
+        width: 30px;
+        min-width: 30px;
+        background: rgba(0, 0, 0, 0);
         padding: 0;
         height: 37px;
-        border-left: 0;
+        border: none;
+        border-left: 1px solid #fafafa;
+        box-shadow: none;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        margin-left: 5px;
+
+        &:hover {
+            box-shadow: none;
+        }
 
         svg {
             width: 20px;

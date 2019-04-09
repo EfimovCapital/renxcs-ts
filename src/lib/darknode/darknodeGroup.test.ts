@@ -1,7 +1,7 @@
 // import { MultiAddress } from "../types/types";
 import { bootstrapNode0, bootstrapNode1, DarknodeGroup } from "./darknodeGroup";
 
-test.only("bootstrapping", async () => {
+test("bootstrapping", async () => {
     // try {
     //     console.log(await (new Darknode(bootstrapNode0).getHealth()));
     // } catch (error) {
