@@ -12,7 +12,7 @@ export enum Token {
     ZEC = "ZEC",
     WBTC = "WBTC",
 }
-export type MarketPair = string;
+// export type MarketPair = string;
 
 const CoinGeckoIDs = Map<Token, string>()
     .set(Token.DAI, "dai")
@@ -29,7 +29,7 @@ const CoinGeckoIDs = Map<Token, string>()
  * @param sndCode The second currency.
  * @returns An array containing the price with respect to the currencies, and the 24 hour percent change.
  */
-export const fetchDetails = async (geckoID: string) => {
+const fetchDetails = async (geckoID: string) => {
     const url = `https://api.coingecko.com/api/v3/coins/${geckoID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
     const response = await fetch(url);
     return response.json();

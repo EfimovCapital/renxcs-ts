@@ -21,6 +21,7 @@ class BackgroundTasksClass extends React.Component<Props, State> {
      * includes the time it takes to run the task.
      */
     // tslint:disable: completed-docs
+    private callBootstrapTimeout: NodeJS.Timer | undefined;
     private callUpdatePricesTimeout: NodeJS.Timer | undefined;
     private callUpdateMarketPricesTimeout: NodeJS.Timer | undefined;
     // tslint:enable: completed-docs
@@ -37,6 +38,7 @@ class BackgroundTasksClass extends React.Component<Props, State> {
 
     public componentWillUnmount() {
         // Clear timeouts
+        if (this.callBootstrapTimeout) { clearTimeout(this.callBootstrapTimeout); }
         if (this.callUpdatePricesTimeout) { clearTimeout(this.callUpdatePricesTimeout); }
         if (this.callUpdateMarketPricesTimeout) { clearTimeout(this.callUpdateMarketPricesTimeout); }
     }
@@ -63,6 +65,21 @@ class BackgroundTasksClass extends React.Component<Props, State> {
         }
         if (this.callUpdatePricesTimeout) { clearTimeout(this.callUpdatePricesTimeout); }
         this.callUpdatePricesTimeout = setTimeout(this.callUpdatePrices, delay * 1000);
+    }
+
+    // Bootstrap every hour
+    private readonly callBootstrap = async (): Promise<void> => {
+        let delay = 60 * 60;
+        try {
+            await this.props.store.darknodeGroup.bootstrap();
+        } catch (error) {
+            _captureBackgroundException_(error, {
+                description: "Error thrown in callBootstrap background task",
+            });
+            delay = 20;
+        }
+        if (this.callBootstrapTimeout) { clearTimeout(this.callBootstrapTimeout); }
+        this.callBootstrapTimeout = setTimeout(this.callBootstrap, delay * 1000);
     }
 
     // Retrieve market prices every minute
@@ -92,6 +109,12 @@ class BackgroundTasksClass extends React.Component<Props, State> {
      * setupLoops is called once to start the timeouts
      */
     private readonly setupLoops = () => {
+        this.callBootstrap().catch(error => {
+            _captureBackgroundException_(error, {
+                description: "Error in callBootstrap in BackgroundTasks",
+            });
+        });
+
         this.callUpdatePrices().catch(error => {
             _captureBackgroundException_(error, {
                 description: "Error in callUpdatePrices in BackgroundTasks",
@@ -108,6 +131,9 @@ class BackgroundTasksClass extends React.Component<Props, State> {
 }
 
 const mapStateToProps = (state: ApplicationData) => ({
+    store: {
+        darknodeGroup: state.general.darknodeGroup,
+    }
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

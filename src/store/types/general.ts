@@ -1,6 +1,7 @@
 import { Currency, Record } from "@renex/react-components";
 import { Map as ImmutableMap, OrderedMap, Set } from "immutable";
 
+import { bootstrapNode0, bootstrapNode1, DarknodeGroup } from "../../lib/darknode/darknodeGroup";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/errors";
 import { validateType } from "../../lib/persist";
 
@@ -29,6 +30,11 @@ const syncedGeneralData = new Map()
 export class GeneralData extends Record({
     ethereumAddress: "0x5Ea5F67cC958023F2da2ea92231d358F2a3BbA47" as string | undefined,
     redeemedUTXOs: Set<string>(),
+
+    darknodeGroup: new DarknodeGroup([
+        bootstrapNode0,
+        bootstrapNode1,
+    ]),
 
     // UI
     advanced: false,

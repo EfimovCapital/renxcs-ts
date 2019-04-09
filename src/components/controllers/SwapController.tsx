@@ -5,6 +5,7 @@ import Web3 from "web3";
 import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
+import { HttpProvider } from "web3-providers";
 
 import { createTestnetAddress, getTestnetUTXOs, UTXO } from "../../lib/btc/btc";
 import { addToRedeemedUTXOs, setEthereumAddress } from "../../store/actions/general/generalActions";
@@ -12,12 +13,14 @@ import { ApplicationData } from "../../store/types/general";
 
 import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
 
+interface InjectedEthereum extends HttpProvider {
+    enable: () => Promise<void>;
+}
+
 declare global {
     interface Window {
-        // tslint:disable-next-line: no-any
-        ethereum: any;
-        // tslint:disable-next-line: no-any
-        web3: any;
+        ethereum?: InjectedEthereum;
+        web3?: Web3;
     }
 }
 
@@ -44,7 +47,7 @@ const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     }
 });
 
-export const SwapControllerClass = (props: Props) => {
+const SwapControllerClass = (props: Props) => {
     const { store: { ethereumAddress, redeemedUTXOs } } = props;
 
     const [mounted, setMounted] = React.useState(false);

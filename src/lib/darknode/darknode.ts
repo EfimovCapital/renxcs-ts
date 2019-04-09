@@ -164,20 +164,23 @@ export class Darknode {
         return resp.data as ReceiveMessageResponse;
     }
 
-    private generatePayload(method: string, params?: unknown) {
+    private generatePayload(method: string, params: unknown = []) {
         return {
             id: 1,
             jsonrpc: "2.0",
             method,
-            params: params ? [params] : [],
+            params,
             version: "0.0",
         };
     }
 
-    private responseError(msg: string, response: AxiosResponse) {
-        const error = new Error(msg);
-        // tslint:disable-next-line: no-any
-        (error as any).response = response;
+    private responseError(msg: string, response: AxiosResponse): ResponseError {
+        const error = new Error(msg) as ResponseError;
+        error.response = response;
         return error;
     }
+}
+
+interface ResponseError extends Error {
+    response: AxiosResponse;
 }

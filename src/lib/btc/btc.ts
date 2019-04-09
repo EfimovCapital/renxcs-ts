@@ -2,9 +2,9 @@ import Axios from "axios";
 
 import { encoding, Networks, Opcode, Script } from "bitcore-lib";
 
-export const testnetMasterPKH = new Buffer("e02cabac3a62655335b1227dfdecfff27b5f6111", "hex");
+const testnetMasterPKH = new Buffer("e02cabac3a62655335b1227dfdecfff27b5f6111", "hex");
 
-export const createAddress = ({ mainnet, masterPKH }: { mainnet: boolean, masterPKH: Buffer }) =>
+const createAddress = ({ mainnet, masterPKH }: { mainnet: boolean, masterPKH: Buffer }) =>
     (address: string) =>
         new Script()
             .add(new Buffer(address.substring(0, 2) === "0x" ? address.slice(2) : address, "hex"))
@@ -18,7 +18,7 @@ export const createAddress = ({ mainnet, masterPKH }: { mainnet: boolean, master
 
 export const createTestnetAddress = createAddress({ mainnet: false, masterPKH: testnetMasterPKH });
 
-export const testnetMercury = "https://ren-mercury.herokuapp.com/btc-testnet3";
+const testnetMercury = "https://ren-mercury.herokuapp.com/btc-testnet3";
 
 export interface UTXO {
     txHash: string; // hex string without 0x prefix
@@ -27,7 +27,7 @@ export interface UTXO {
     vout: number;
 }
 
-export const getUTXOs = (endpoint: string) => async (address: string, limit: number, confirmations: number) => {
+const getUTXOs = (endpoint: string) => async (address: string, limit: number, confirmations: number) => {
     let resp;
     try {
         resp = await Axios.get(`${endpoint}/utxo/${address}?limit=${limit}&confirmations=${confirmations}`);

@@ -4,6 +4,6 @@ export const NETWORK = process.env.REACT_APP_NETWORK;
 
 export const SOURCE_VERSION = process.env.REACT_APP_SOURCE_VERSION;
 
-export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
+// export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
 
 export const environment = ((process.env.NODE_ENV === "development") ? "local" : NETWORK) || "unknown";
