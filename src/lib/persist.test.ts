@@ -1,8 +1,8 @@
 import { validateType } from "./persist";
 
-import { List, Set } from "immutable";
+import { List, Map, Set } from "immutable";
 
-test("validateType", async () => {
+test.only("validateType", async () => {
     expect(
         validateType("string[]", ["abc", "def"])
     ).toEqual(["abc", "def"]);
@@ -18,9 +18,13 @@ test("validateType", async () => {
     expect(
         validateType("number", 1)
     ).toBe(1);
+
+    expect(
+        validateType("Map<string, List<string>>", { l: ["1"] })
+    ).toEqual(Map({ l: List(["1"]) }));
 });
 
-test("validateType throws on invalid type", async () => {
+test.only("validateType throws on invalid type", async () => {
 
     expect(
         () => validateType("Set<string>", ["abc", 1])

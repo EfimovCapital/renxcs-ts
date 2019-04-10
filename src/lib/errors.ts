@@ -1,10 +1,11 @@
-// tslint:disable: no-any
-
 import * as Sentry from "@sentry/browser";
 
 import { naturalTime } from "@renex/react-components";
 
 import { environment } from "./environmentVariables";
+
+// tslint:disable-next-line: no-any
+type AnyError = Error | any;
 
 interface Details {
     description?: string;
@@ -37,7 +38,7 @@ export const pageLoadedAt = (): string => {
 
 // Determines whether or not this is a common network error (too many of these
 // are being logged to Sentry)
-const isNetworkError = (error: Error | any): boolean => {
+const isNetworkError = (error: AnyError): boolean => {
     const message: string = ((error || {}).message || error).toString();
 
     if (
@@ -60,7 +61,7 @@ const rawError = (errorObject: Error) => {
     // https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json/11616993#11616993
 
     // Note: cache should not be re-used by repeated calls to JSON.stringify.
-    let cache: any[] | null = [];
+    let cache: Array<{}> | null = [];
     const rawErrorJSON = JSON.stringify(errorObject, (key, value) => {
         if (key === "request") {
             return "... omitted";
@@ -86,7 +87,7 @@ const rawError = (errorObject: Error) => {
     return rawErrorJSON;
 };
 
-const _captureException_ = <X extends Details>(error: any, details: X) => {
+const _captureException_ = <X extends Details>(error: AnyError, details: X) => {
     if (error._noCapture_) {
         return;
     }
@@ -146,22 +147,22 @@ const _captureException_ = <X extends Details>(error: any, details: X) => {
 };
 
 // Background exceptions are thrown in background loops and actions
-export const _captureBackgroundException_ = <X extends Details & Described>(error: any, details?: X) => {
+export const _captureBackgroundException_ = <X extends Details & Described>(error: AnyError, details?: X) => {
     _captureException_(error, { ignoreNetwork: true, ...details, category: "background_exception" });
 };
 
 // Interaction exceptions are thrown as a direct result of a user interaction
-export const _captureInteractionException_ = <X extends Details & Described & ShownToUser>(error: any, details?: X) => {
+export const _captureInteractionException_ = <X extends Details & Described & ShownToUser>(error: AnyError, details?: X) => {
     _captureException_(error, { ...details, category: "interaction_exception" });
 };
 
 // Component exceptions are thrown from an ErrorBoundary
-export const _captureComponentException_ = (error: any, errorInfo: React.ErrorInfo) => {
+export const _captureComponentException_ = (error: AnyError, errorInfo: React.ErrorInfo) => {
     _captureException_(error, { ...errorInfo, description: "Error caught in Error Boundary. See Component stack trace.", category: "component_exception" });
 };
 
 // _noCapture_ is to mark errors that should not be reported to Sentry.
 export const _noCapture_ = (error: Error): Error => {
-    (error as any)._noCapture_ = true;
+    (error as AnyError)._noCapture_ = true;
     return error;
 };

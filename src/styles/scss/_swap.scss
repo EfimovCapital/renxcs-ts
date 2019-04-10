@@ -1,4 +1,24 @@
 .swap {
+
+    color: #231f20;
+
+    .button {
+        border-radius: 8px;
+    }
+
+    .block {
+        margin-bottom: 50px;
+        width: 100%;
+    }
+
+    h3 {
+        text-transform: uppercase;
+        font-weight: 900 !important;
+        color: #231f20 !important;
+        font-size: 14px !important;
+        letter-spacing: 1px;
+    }
+
     display: flex;
     flex-flow: column;
     align-items: center;
@@ -31,30 +51,88 @@
         margin-bottom: 20px;
     }
 
-    .swap--inner {
-        padding: 30px;
-        border-radius: 16px;
-        background-color: #EBEDF2;
+    .deposit-address,
+    .deposits {
+        width: 100%;
+        border-radius: 8px;
     }
 
-    .swap--inner>* {
+    .deposit-address {
+        font-size: 16px;
+        margin-top: 10px;
+
+        transition: max-height 1s ease;
+        overflow: hidden;
+        max-height: 0px;
+        background-color: white;
+
+        &.btc {
+            border: 1px solid #ccc;
+
+            * {
+                color: #F09242;
+            }
+
+            max-height: 100px;
+            padding: 10px;
+        }
+
+        &.zec {
+            border: 1px solid #ccc;
+
+            * {
+                color: #231f20;
+            }
+
+            max-height: 100px;
+            padding: 10px;
+        }
+
+        &.eth {
+            border: 1px solid #ccc;
+
+            * {
+                color: #627eea;
+            }
+
+            max-height: 100px;
+            padding: 10px;
+        }
+    }
+
+    .deposits {
+        // margin-top: -20px;
+        background-color: white;
+        padding: 0;
+        width: 100%;
+    }
+
+    .deposit-address>*,
+    .deposits>* {
         &:not(:last-child) {
             margin-bottom: 20px;
         }
     }
 
-    .swap--inner>div,
-    .swap--inner>a {
+    .deposit-address>div,
+    .deposit-address>a,
+    .deposits>div,
+    .deposits>a {
+        width: calc(100% - 40px);
         display: flex;
         justify-content: space-between;
         align-items: center;
 
-        background-color: white;
-        border: 1px solid #eee;
-        padding: 20px;
-        width: 500px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
         flex-grow: 1;
-        box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.1);
+    }
+
+    .deposit-address>div,
+    .deposit-address>a {
+        border: none;
+        border-radius: 8px;
+        display: block;
     }
 
     h3 {
@@ -65,29 +143,40 @@
         text-align: left;
     }
 
-    .swap--inner .utxo {
-        flex-flow: column;
+    .deposits--title {
+        border: none !important;
+        justify-content: flex-start !important;
+        margin: 0 !important;
+
+        .button {
+            width: 160px;
+            padding: 0;
+            margin: 0;
+            margin-left: 20px;
+            text-align: left;
+            margin-bottom: 14px;
+        }
+    }
+
+    .utxo {
         font-size: 14px;
         align-items: flex-start;
         text-decoration: none;
+        width: calc(100% - 40px);
+
+        display: flex;
+        align-items: center;
+        padding: 20px;
+
+        .utxo--right {
+            display: flex;
+            flex-flow: column;
+            width: 100%;
+            align-items: flex-start;
+        }
 
         >*+* {
             margin-top: 5px;
-        }
-
-        &:hover {
-            &::after {
-                content: "⇲";
-                position: relative;
-                top: -64px;
-                transform: rotate(-90deg) translateX(-100%);
-                height: 0;
-                left: 96%;
-                color: $blue-bright;
-                font-weight: 100;
-                opacity: 0.5;
-                font-size: 20px;
-            }
         }
     }
 
@@ -95,17 +184,103 @@
         opacity: 0.5;
     }
 
+    .swap--eth--form {
+        width: 100%;
+    }
+
     .swap--eth--input {
         display: flex;
+
+        border: 1px solid #231f20;
+        background: #fff;
+        display: flex;
+        border-radius: 8px;
+        border: 1px solid #dfe1e5;
+        border-radius: 8px;
+        z-index: 3;
+        height: 44px;
+        width: 100%;
+
+        &:hover {
+            // border-color: rgba(223, 225, 229, 0);
+        }
+
+        input[type=text] {
+            height: 100%;
+            flex-grow: 1;
+            background: none;
+            border: none;
+            padding-left: 25px;
+        }
+    }
+
+    .currencies {
+        display: flex;
+        align-items: flex-start;
+        width: calc(100% + 20px);
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .currency {
+        cursor: pointer;
+        width: 150px;
+        height: 90px;
+        border-radius: 8px;
+        margin: 0 10px;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {}
+
+        svg {
+            transform: scale(4);
+        }
+
+        &.btc {
+            background: #F09242;
+        }
+
+        &.zec {
+            background: rgb(35, 31, 32);
+        }
+
+        &.eth {
+            background: #627eea;
+        }
+    }
+
+    .circle--progress {
+        width: 60px;
+        margin-right: 15px;
+    }
+
+    .swap--eth--submit {
+        flex-grow: 0;
+        width: 80px;
+        min-width: 80px;
+        padding: 0;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+        font-weight: 900;
     }
 
     .metamask-logo {
-        width: 40px;
-        min-width: 40px;
-        background: white;
+        width: 30px;
+        min-width: 30px;
+        background: rgba(0, 0, 0, 0);
         padding: 0;
         height: 37px;
-        border-left: 0;
+        border: none;
+        border-left: 1px solid #fafafa;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        margin-left: 5px;
+
+        &:hover {}
 
         svg {
             width: 20px;
