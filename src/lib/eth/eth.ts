@@ -7,6 +7,7 @@ import { AbiItem } from "web3-utils";
 
 import { DarknodeID, NewDarknodeID } from "../types/types";
 
+import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
 const NULL = "0x0000000000000000000000000000000000000000";
@@ -18,6 +19,10 @@ export class Pod extends Record({
 
 export const darknodeRegistry = (web3: Web3, address: string): Contract => {
     return new web3.eth.Contract(DarknodeRegistryABI as AbiItem[], address);
+};
+
+export const bridgedToken = (web3: Web3, address: string): Contract => {
+    return new web3.eth.Contract(BridgedTokenABI as AbiItem[], address);
 };
 
 /*
@@ -45,6 +50,12 @@ export const getAllDarknodeIDs = async (darknodeRegistryContract: Contract): Pro
 
     return allDarknodes.map(NewDarknodeID);
 };
+
+// export const mintToken = (bridgedToken: Contract, to: string, amount: number, hash: string, signature: string) => {
+//     let signaturePrefix = 0;
+//     const await bridgedToken.methods.verifySig(to, amount, hash, signature);
+
+// }
 
 // /*
 //  * Calculate pod arrangement based on current epoch
