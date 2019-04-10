@@ -1,8 +1,6 @@
 .swap {
 
-    * {
-        color: #313e4e;
-    }
+    color: #231f20;
 
     .button {
         border-radius: 8px;
@@ -16,7 +14,7 @@
     h3 {
         text-transform: uppercase;
         font-weight: 900 !important;
-        color: #313e4e !important;
+        color: #231f20 !important;
         font-size: 14px !important;
         letter-spacing: 1px;
     }
@@ -60,15 +58,17 @@
     }
 
     .deposit-address {
-        font-size: 18px;
+        font-size: 16px;
         margin-top: 10px;
 
         transition: max-height 1s ease;
         overflow: hidden;
         max-height: 0px;
-        background-color: #313e4e;
+        background-color: white;
 
         &.btc {
+            border: 1px solid #ccc;
+
             * {
                 color: #F09242;
             }
@@ -78,8 +78,10 @@
         }
 
         &.zec {
+            border: 1px solid #ccc;
+
             * {
-                color: white;
+                color: #231f20;
             }
 
             max-height: 100px;
@@ -87,6 +89,8 @@
         }
 
         &.eth {
+            border: 1px solid #ccc;
+
             * {
                 color: #627eea;
             }
@@ -187,7 +191,7 @@
     .swap--eth--input {
         display: flex;
 
-        border: 1px solid #313e4e;
+        border: 1px solid #231f20;
         background: #fff;
         display: flex;
         border-radius: 8px;

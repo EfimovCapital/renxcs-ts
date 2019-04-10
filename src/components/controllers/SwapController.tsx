@@ -81,7 +81,10 @@ const SwapControllerClass = (props: Props) => {
     const [utxos, setUTXOs] = React.useState<UTXO[]>([]);
     const [redeeming, setRedeeming] = React.useState(false);
     const [showingDeposit, setShowingDeposit] = React.useState<string | undefined>();
-    const [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
+    // tslint:disable-next-line: prefer-const
+    let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
+    // tslint:disable-next-line: prefer-const
+    let [resubmitting, setResubmitting] = React.useState(Map<string, boolean>());
     const [redeemingOnEthereum, setRedeemingOnEthereum] = React.useState(Map<string, boolean>());
 
     const onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -92,19 +95,35 @@ const SwapControllerClass = (props: Props) => {
         setUTXOs([]);
     };
 
+    const resendMessage = async (time: string) => {
+        if (ethereumAddress) {
+            resubmitting = resubmitting.set(time, true);
+            setResubmitting(resubmitting);
+            try {
+                await darknodeGroup.submitDeposits(ethereumAddress);
+            } catch (error) {
+                console.error(error);
+            }
+            resubmitting = resubmitting.delete(time);
+            setResubmitting(resubmitting);
+        }
+    };
+
     const checkForResponse = async (id: string) => {
         const renVMMessage = renVMMessages.get(id);
         if (!renVMMessage) {
             return;
         }
-        setCheckingResponse(checkingResponse.set(id, true));
+        checkingResponse = checkingResponse.set(id, true);
+        setCheckingResponse(checkingResponse);
         try {
             const signature = await darknodeGroup.checkForResponse(renVMMessage);
             props.actions.addToSignatures({ utxo: id, signature });
         } catch (error) {
             console.error(error);
         }
-        setCheckingResponse(checkingResponse.remove(id));
+        checkingResponse = checkingResponse.remove(id);
+        setCheckingResponse(checkingResponse);
     };
 
     const onSubmit = async (altDepositAddress?: string) => {
@@ -200,6 +219,7 @@ const SwapControllerClass = (props: Props) => {
         try {
             const web3 = await getWeb3();
             const addresses = await web3.eth.getAccounts();
+            console.log(addresses);
             props.actions.setEthereumAddress(addresses[0]);
         } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
@@ -240,8 +260,8 @@ const SwapControllerClass = (props: Props) => {
             <form onSubmit={onGenerateAddress} className="swap--eth--form">
                 <div className="swap--eth--input">
                     <input type="text" value={ethereumAddress} onChange={onChange} placeholder="Enter Ethereum address for receiving" />
-                    <button className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
-                    <input type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress} value="Go" />
+                    <button type="button" className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
+                    <button type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress}>Go</button>
                 </div>
             </form>
         </div>
@@ -301,23 +321,31 @@ const SwapControllerClass = (props: Props) => {
                             {showCircle(66)}
                             <div className="utxo--right">
                                 <span>Deposited <b>{value / (10 ** 8)} BTC</b></span>
-                                <span className="utxo--txid">Sent to <b>{renVMMessage.size} darknodes</b></span>
+                                <span className="utxo--txid">Sent to <b>{renVMMessage.size} darknodes</b>. Awaiting response.</span>
+                                {/* <span>
+                                    {messageUtxos ? messageUtxos.map(utxo => <span key={utxo.txHash} className="utxo--txid">{utxo.txHash.slice(0, 8)}...</span>).toArray() : null}
+                                </span> */}
                                 {/* <span className="utxo--txid">{first ? first.messageID : ""}</span> */}
-                                <span className="utxo--txid">{time}</span>
+                                {/* <span className="utxo--txid">{time}</span> */}
                             </div>
-                            <div className="utxo--buttons">
-                                {signatures.has(time) ?
-                                    <>
+                            {signatures.has(time) ?
+                                <div className="utxo--buttons">
+                                    {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
+                                    <button className="button" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
+                                </div>
+                                :
+                                <>
+                                    <div className="utxo--buttons">
+
                                         {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                        <button className="button" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
-                                    </>
-                                    :
-                                    <>
+                                        <button className="button--white" onClick={() => { resendMessage(time).catch(console.error); }} disabled={resubmitting.has(time)}>{resubmitting.has(time) ? <Loading /> : <>Resend ren_sendMessage</>}</button>
+                                    </div>
+                                    <div className="utxo--buttons">
                                         {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
                                         <button className="button--white" onClick={() => { checkForResponse(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Check for response</>}</button>
-                                    </>
-                                }
-                            </div>
+                                    </div>
+                                </>
+                            }
                         </div>;
                     }).toList()}
                 </div>
