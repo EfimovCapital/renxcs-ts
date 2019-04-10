@@ -1,6 +1,6 @@
 import { List, Map } from "immutable";
 
-import { MultiAddress, multiAddressToID } from "../types/types";
+import { MultiAddress, multiAddressToID, NewMultiAddress } from "../types/types";
 import { Darknode } from "./darknode";
 import {
     HealthResponse,
@@ -10,14 +10,14 @@ import {
     SendMessageResponse,
 } from "./types";
 
-const bootStrapNode0 = MultiAddress("/ip4/3.88.22.140/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
-const bootStrapNode1 = MultiAddress("/ip4/34.219.91.31/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
-const bootStrapNode2 = MultiAddress("/ip4/3.92.234.171/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
-const bootStrapNode3 = MultiAddress("/ip4/35.183.181.45/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
-const bootStrapNode4 = MultiAddress("/ip4/13.233.251.189/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
-const bootStrapNode5 = MultiAddress("/ip4/34.221.196.212/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
-const bootStrapNode6 = MultiAddress("/ip4/35.158.105.90/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
-const bootStrapNode7 = MultiAddress("/ip4/52.67.113.89/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
+const bootStrapNode0 = NewMultiAddress("/ip4/3.88.22.140/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
+const bootStrapNode1 = NewMultiAddress("/ip4/34.219.91.31/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
+const bootStrapNode2 = NewMultiAddress("/ip4/3.92.234.171/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
+const bootStrapNode3 = NewMultiAddress("/ip4/35.183.181.45/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
+const bootStrapNode4 = NewMultiAddress("/ip4/13.233.251.189/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
+const bootStrapNode5 = NewMultiAddress("/ip4/34.221.196.212/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
+const bootStrapNode6 = NewMultiAddress("/ip4/35.158.105.90/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
+const bootStrapNode7 = NewMultiAddress("/ip4/52.67.113.89/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
 
 export const bootstrapNodes = [
     bootStrapNode0,
@@ -69,7 +69,7 @@ export class DarknodeGroup {
                     throw new Error("No darknode provided");
                 }
                 const peers = await result.getPeers();
-                this.addDarknodes(peers.result.peers.map(MultiAddress));
+                this.addDarknodes(peers.result.peers.map(NewMultiAddress));
                 success = true;
             } catch (error) {
                 lastError = error;
@@ -116,7 +116,7 @@ export class DarknodeGroup {
 export class WarpGateGroup extends DarknodeGroup {
     constructor(multiAddresses: MultiAddress[] | MultiAddress) {
         super(multiAddresses);
-        this.getHealth();
+        // this.getHealth();
     }
 
     public submitDeposits = async (address: string): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
@@ -139,10 +139,10 @@ export class WarpGateGroup extends DarknodeGroup {
         }
 
         return results.filter(x => x !== null).map((result) => ({
-            // tslint:disable: no-non-null-assertion
+            // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
             multiAddress: result!.multiAddress,
             messageID: result!.result.result.messageID,
-            // tslint:enable: no-non-null-assertion
+            // tslint:enable: no-non-null-assertion no-unnecessary-type-assertion
         })).toList();
     }
 

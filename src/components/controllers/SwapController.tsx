@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import CircularProgressBar from "react-circular-progressbar";
 import Web3 from "web3";
 
 import { Loading, TokenIcon } from "@renex/react-components";
@@ -8,12 +9,13 @@ import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
 
 import { createTestnetAddress, getTestnetUTXOs, UTXO } from "../../lib/btc/btc";
-import { addToRedeemedUTXOs, setEthereumAddress, addToRenVMMessages, addToSignatures } from "../../store/actions/general/generalActions";
+import { addToMessageToUtxos, addToRedeemedUTXOs, addToRenVMMessages, addToSignatures, addToUtxoToMessage, setEthereumAddress } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
 
-import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
 import { List, Map } from "immutable";
-import { MultiAddress } from "../../lib/types/types";
+import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
+
+import "react-circular-progressbar/dist/styles.css";
 
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
@@ -25,6 +27,25 @@ declare global {
         web3?: Web3;
     }
 }
+
+const showCircle = (percentage: number) => {
+    return <CircularProgressBar
+        className="circle--progress"
+        percentage={percentage}
+        strokeWidth={18}
+        styles={{
+            path: {
+                stroke: "#006FE8",
+                strokeLinecap: "butt",
+                // strokeOpacity: 0.6,
+            },
+            trail: {
+                stroke: "#006FE8",
+                strokeOpacity: 0.2,
+            },
+        }}
+    />;
+};
 
 const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     // Modern dApp browsers...
@@ -50,7 +71,7 @@ const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
 });
 
 const SwapControllerClass = (props: Props) => {
-    const { store: { ethereumAddress, redeemedUTXOs, darknodeGroup, renVMMessages, signatures } } = props;
+    const { store: { ethereumAddress, redeemedUTXOs, darknodeGroup, renVMMessages, signatures, utxoToMessage, messageToUtxos } } = props;
 
     const [mounted, setMounted] = React.useState(false);
 
@@ -71,6 +92,21 @@ const SwapControllerClass = (props: Props) => {
         setUTXOs([]);
     };
 
+    const checkForResponse = async (id: string) => {
+        const renVMMessage = renVMMessages.get(id);
+        if (!renVMMessage) {
+            return;
+        }
+        setCheckingResponse(checkingResponse.set(id, true));
+        try {
+            const signature = await darknodeGroup.checkForResponse(renVMMessage);
+            props.actions.addToSignatures({ utxo: id, signature });
+        } catch (error) {
+            console.error(error);
+        }
+        setCheckingResponse(checkingResponse.remove(id));
+    };
+
     const onSubmit = async (altDepositAddress?: string) => {
         altDepositAddress = altDepositAddress || (depositAddress && depositAddress.btc) || "";
         if (!altDepositAddress) {
@@ -80,18 +116,33 @@ const SwapControllerClass = (props: Props) => {
 
         setChecking(true);
         setError(undefined);
+
+        const promises = renVMMessages.map(async (_, time) => {
+            // tslint:disable-next-line: no-console
+            return checkForResponse(time).catch(console.error);
+        }).valueSeq().toArray();
+
         try {
             const newUTXOs = await getTestnetUTXOs(altDepositAddress, 10, 0);
             setUTXOs(newUTXOs);
         } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
         }
+
+        try {
+            await Promise.all(promises);
+        } catch (error) {
+            // tslint:disable-next-line: no-console
+            console.error(error);
+        }
+
         setChecking(false);
     };
 
     // Call onSubmit without passing in click-event parameters
-    const onClickSubmit = () => onSubmit();
+    const onRefresh = () => onSubmit();
 
+    // tslint:disable-next-line: no-any
     const onGenerateAddress = (e?: any) => {
         if (e && e.preventDefault) {
             e.preventDefault();
@@ -107,6 +158,7 @@ const SwapControllerClass = (props: Props) => {
                 return;
             }
             setDepositAddress({ btc: btcAddress, zec: "NO ZCASH PLS", eth: ethereumAddress });
+            // tslint:disable-next-line: no-console
             onSubmit(btcAddress).catch(console.error);
         }
     };
@@ -125,9 +177,12 @@ const SwapControllerClass = (props: Props) => {
             return;
         }
 
+        const id = Date().toString();
+
         try {
             const messages = await darknodeGroup.submitDeposits(ethereumAddress);
-            props.actions.addToRenVMMessages({ utxo: Date().toString(), messages });
+            props.actions.addToRenVMMessages({ utxo: id, messages });
+            props.actions.addToMessageToUtxos({ message: id, utxos: List(utxos) });
         } catch (error) {
             console.error(error);
             setRedeeming(false);
@@ -136,6 +191,7 @@ const SwapControllerClass = (props: Props) => {
         }
         for (const utxo of utxos) {
             props.actions.addToRedeemedUTXOs(utxo.txHash);
+            props.actions.addToUtxoToMessage({ utxo: utxo.txHash, message: id });
         }
         setRedeeming(false);
     };
@@ -165,21 +221,6 @@ const SwapControllerClass = (props: Props) => {
         }
     };
 
-    const checkForResponse = async (id: string) => {
-        const renVMMessage = renVMMessages.get(id);
-        if (!renVMMessage) {
-            return;
-        }
-        setCheckingResponse(checkingResponse.set(id, true));
-        try {
-            const signature = await darknodeGroup.checkForResponse(renVMMessage);
-            props.actions.addToSignatures({ utxo: id, signature });
-        } catch (error) {
-            console.error(error);
-        }
-        setCheckingResponse(checkingResponse.remove(id));
-    };
-
     const redeemOnEthereum = async (id: string) => {
         const signature = signatures.get(id);
         if (!signature) {
@@ -187,89 +228,88 @@ const SwapControllerClass = (props: Props) => {
         }
         setRedeemingOnEthereum(redeemingOnEthereum.set(id, true));
         try {
-            const web3 = await getWeb3();
+            // const web3 = await getWeb3();
         } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
         }
         setRedeemingOnEthereum(redeemingOnEthereum.remove(id));
     };
 
-    const showRedeemButton = utxos.reduce<boolean>((carry, e) => carry || !redeemedUTXOs.contains(e.txHash), false);
-
     return <div className="swap container">
-        <form onSubmit={onGenerateAddress} className="swap--eth--form">
-            <div className="swap--eth--input">
-                <input type="text" value={ethereumAddress} onChange={onChange} placeholder="Enter Ethereum address for receiving" />
-                <button className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
-                <input type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress} value="Go" />
-            </div>
-        </form>
+        <div className="block">
+            <form onSubmit={onGenerateAddress} className="swap--eth--form">
+                <div className="swap--eth--input">
+                    <input type="text" value={ethereumAddress} onChange={onChange} placeholder="Enter Ethereum address for receiving" />
+                    <button className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
+                    <input type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress} value="Go" />
+                </div>
+            </form>
+        </div>
         {depositAddress ?
             <>
-                <div className="currencies">
-                    <div
-                        className="currency"
-                        data-id={"btc"}
-                        onClick={showDeposit}
-                        role="button"
-                    >
-                        <TokenIcon token={"BTC"} />
+                <div className="block">
+                    <h3>Currencies</h3>
+                    <div className="currencies">
+                        {["btc", "zec", "eth"].map((currency) => {
+                            return <div
+                                className={`currency ${currency}`}
+                                data-id={currency}
+                                onClick={showDeposit}
+                                role="button"
+                                key={currency}
+                            >
+                                <TokenIcon token={currency.toUpperCase()} />
+                            </div>;
+                        })}
                     </div>
-                    <div
-                        className="currency zec"
-                        data-id={"zec"}
-                        onClick={showDeposit}
-                        role="button"
-                    >
-                        <TokenIcon token={"ZEC"} />
-                    </div>
-                    <div
-                        className="currency eth"
-                        data-id={"eth"}
-                        onClick={showDeposit}
-                        role="button"
-                    >
-                        <TokenIcon token={"ETH"} />
+
+                    <div className={`deposit-address ${showingDeposit}`}>
+                        <div>
+                            {showingDeposit ? <>Deposit {showingDeposit.toUpperCase()} to <b>{depositAddress[showingDeposit]}</b></> : null}
+                        </div>
                     </div>
                 </div>
-
-                {showingDeposit ? <div className={`swap--inner ${showingDeposit}`}>
-                    <div>
-                        Deposit {showingDeposit.toUpperCase()} to <b>{depositAddress[showingDeposit]}</b>
-                    </div>
-                </div> : null}
 
                 {error ? <p className="red">{error}</p> : null}
 
-                <div className="deposits">
-                    <button disabled={checking} className="button--white" onClick={onClickSubmit}>{checking ? <div className="checking"><Loading /> Retriving deposits...</div> : <>Retrieve deposits</>}</button>
-                    {utxos.map((utxo) => {
+                <div className="block deposits">
+                    <div className="deposits--title">
+                        <h3>Deposits</h3>
+                        <button disabled={checking} className="button--white" onClick={onRefresh}>{checking ? <div className="checking"><Loading /></div> : <>Refresh</>}</button>
+                    </div>
+                    {utxos.filter(utxo => !utxoToMessage.has(utxo.txHash)).map((utxo) => {
                         const redeemingUTXO = redeemedUTXOs.contains(utxo.txHash);
-                        return <a key={utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.txHash}`}>
-                            <span>Deposited <b>{utxo.amount / (10 ** 8)} BTC</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
-                            <span className="utxo--txid">{utxo.txHash}</span>
-                        </a>;
+                        return <div key={utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} >
+                            {showCircle(33)}
+                            <div className="utxo--right">
+                                <span>Deposited <b>{utxo.amount / (10 ** 8)} BTC</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
+                                <a rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.txHash}`}>
+                                    <span className="utxo--txid">{utxo.txHash}</span>
+                                </a>
+                            </div>
+                            <div className="utxo--buttons">
+                                {!redeemingUTXO ? <button disabled={redeeming} className="button" onClick={onRedeem}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
+                            </div>
+                        </div>;
                     })}
-                    {showRedeemButton ?
-                        <button disabled={redeeming} className="button" onClick={onRedeem}>{redeeming ? <div className="checking"><Loading alt={true} /> Redeeming...</div> : <>Redeem</>}</button> :
-                        null
-                    }
-                </div>
-                
-                {renVMMessages.size > 0 ?
-                    <div className="deposits">
-                        <h3>In progress</h3>
-                        {renVMMessages.map((renVMMessage, time) => {
-                            const first = renVMMessage.first(undefined);
-                            const loading = signatures.has(time) ? redeemingOnEthereum.get(time) : checkingResponse.get(time);
-                            return <div className="utxo" key={time}>
-                                <span>Response from <b>{renVMMessage.size} darknodes</b></span>
-                                <span className="utxo--txid">{first ? first.messageID : ""}</span>
+                    {renVMMessages.map((renVMMessage, time) => {
+                        // const first = renVMMessage.first(undefined);
+                        const loading = signatures.has(time) ? redeemingOnEthereum.get(time) : checkingResponse.get(time);
+                        const messageUtxos = messageToUtxos.get(time);
+                        const value = messageUtxos ? messageUtxos.reduce((sum, utxo) => utxo.amount + sum, 0) : 0;
+                        return <div className="utxo" key={time}>
+                            {showCircle(66)}
+                            <div className="utxo--right">
+                                <span>Deposited <b>{value / (10 ** 8)} BTC</b></span>
+                                <span className="utxo--txid">Sent to <b>{renVMMessage.size} darknodes</b></span>
+                                {/* <span className="utxo--txid">{first ? first.messageID : ""}</span> */}
                                 <span className="utxo--txid">{time}</span>
+                            </div>
+                            <div className="utxo--buttons">
                                 {signatures.has(time) ?
                                     <>
                                         {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                        <button className="button--blue" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
+                                        <button className="button" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
                                     </>
                                     :
                                     <>
@@ -277,10 +317,10 @@ const SwapControllerClass = (props: Props) => {
                                         <button className="button--white" onClick={() => { checkForResponse(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Check for response</>}</button>
                                     </>
                                 }
-                            </div>;
-                        }).toList()}
-                    </div> : null
-                }
+                            </div>
+                        </div>;
+                    }).toList()}
+                </div>
             </> : null}
     </div >;
 };
@@ -291,6 +331,8 @@ const mapStateToProps = (state: ApplicationData) => ({
         redeemedUTXOs: state.general.redeemedUTXOs,
         darknodeGroup: state.general.darknodeGroup,
         renVMMessages: state.general.renVMMessages,
+        utxoToMessage: state.general.utxoToMessage,
+        messageToUtxos: state.general.messageToUtxos,
         signatures: state.general.signatures,
     }
 });
@@ -301,6 +343,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         addToRedeemedUTXOs,
         addToRenVMMessages,
         addToSignatures,
+        addToUtxoToMessage,
+        addToMessageToUtxos,
     }, dispatch)
 });
 

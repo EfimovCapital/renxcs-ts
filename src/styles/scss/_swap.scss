@@ -1,4 +1,26 @@
 .swap {
+
+    * {
+        color: #313e4e;
+    }
+
+    .button {
+        border-radius: 8px;
+    }
+
+    .block {
+        margin-bottom: 50px;
+        width: 100%;
+    }
+
+    h3 {
+        text-transform: uppercase;
+        font-weight: 900 !important;
+        color: #313e4e !important;
+        font-size: 14px !important;
+        letter-spacing: 1px;
+    }
+
     display: flex;
     flex-flow: column;
     align-items: center;
@@ -31,29 +53,46 @@
         margin-bottom: 20px;
     }
 
-    .swap--inner,
+    .deposit-address,
     .deposits {
         width: 100%;
-        border-radius: 16px;
+        border-radius: 8px;
     }
 
-    .swap--inner {
-        box-shadow: 0 1px 6px 0 rgba(32, 33, 36, 0.28);
+    .deposit-address {
         font-size: 18px;
+        margin-top: 10px;
+
+        transition: max-height 1s ease;
+        overflow: hidden;
+        max-height: 0px;
+        background-color: #313e4e;
 
         &.btc {
-            background-color: #f7931a !important;
-            color: white;
+            * {
+                color: #F09242;
+            }
+
+            max-height: 100px;
+            padding: 10px;
         }
 
         &.zec {
-            background-color: rgb(35, 31, 32) !important;
-            color: white;
+            * {
+                color: white;
+            }
+
+            max-height: 100px;
+            padding: 10px;
         }
 
         &.eth {
-            background-color: #627eea !important;
-            color: white;
+            * {
+                color: #627eea;
+            }
+
+            max-height: 100px;
+            padding: 10px;
         }
     }
 
@@ -64,15 +103,15 @@
         width: 100%;
     }
 
-    .swap--inner>*,
+    .deposit-address>*,
     .deposits>* {
         &:not(:last-child) {
             margin-bottom: 20px;
         }
     }
 
-    .swap--inner>div,
-    .swap--inner>a,
+    .deposit-address>div,
+    .deposit-address>a,
     .deposits>div,
     .deposits>a {
         width: calc(100% - 40px);
@@ -80,17 +119,15 @@
         justify-content: space-between;
         align-items: center;
 
-        border: 1px solid #eee;
-        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
         flex-grow: 1;
-        box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.1);
     }
 
-    .swap--inner>div,
-    .swap--inner>a {
-        box-shadow: none;
+    .deposit-address>div,
+    .deposit-address>a {
         border: none;
-        border-radius: 16px;
+        border-radius: 8px;
         display: block;
     }
 
@@ -102,30 +139,40 @@
         text-align: left;
     }
 
-    .deposits .utxo {
-        flex-flow: column;
+    .deposits--title {
+        border: none !important;
+        justify-content: flex-start !important;
+        margin: 0 !important;
+
+        .button {
+            width: 160px;
+            padding: 0;
+            margin: 0;
+            margin-left: 20px;
+            text-align: left;
+            margin-bottom: 14px;
+        }
+    }
+
+    .utxo {
         font-size: 14px;
         align-items: flex-start;
         text-decoration: none;
-        width: 100%;
+        width: calc(100% - 40px);
+
+        display: flex;
+        align-items: center;
+        padding: 20px;
+
+        .utxo--right {
+            display: flex;
+            flex-flow: column;
+            width: 100%;
+            align-items: flex-start;
+        }
 
         >*+* {
             margin-top: 5px;
-        }
-
-        &:hover {
-            &::after {
-                content: "⇲";
-                position: relative;
-                top: -64px;
-                transform: rotate(-90deg) translateX(-100%);
-                height: 0;
-                left: 96%;
-                color: $blue-bright;
-                font-weight: 100;
-                opacity: 0.5;
-                font-size: 20px;
-            }
         }
     }
 
@@ -140,19 +187,17 @@
     .swap--eth--input {
         display: flex;
 
-        border: 1px solid black;
+        border: 1px solid #313e4e;
         background: #fff;
         display: flex;
         border-radius: 8px;
         border: 1px solid #dfe1e5;
-        box-shadow: none;
-        border-radius: 24px;
+        border-radius: 8px;
         z-index: 3;
         height: 44px;
         width: 100%;
 
         &:hover {
-            box-shadow: 0 1px 6px 0 rgba(32, 33, 36, 0.28);
             // border-color: rgba(223, 225, 229, 0);
         }
 
@@ -177,21 +222,21 @@
         cursor: pointer;
         width: 150px;
         height: 90px;
-        box-shadow: 4px 5px 10px 0 rgba(100, 100, 100, 0.28);
-        border-radius: 16px;
+        border-radius: 8px;
         margin: 0 10px;
         color: white;
-        background: #f7931a;
         display: flex;
         justify-content: center;
         align-items: center;
 
-        &:hover {
-            box-shadow: 5px 6px 10px 0 rgba(100, 100, 100, 0.28);
-        }
+        &:hover {}
 
         svg {
             transform: scale(4);
+        }
+
+        &.btc {
+            background: #F09242;
         }
 
         &.zec {
@@ -201,6 +246,11 @@
         &.eth {
             background: #627eea;
         }
+    }
+
+    .circle--progress {
+        width: 60px;
+        margin-right: 15px;
     }
 
     .swap--eth--submit {
@@ -221,15 +271,12 @@
         height: 37px;
         border: none;
         border-left: 1px solid #fafafa;
-        box-shadow: none;
         height: 100%;
         display: flex;
         justify-content: center;
         margin-left: 5px;
 
-        &:hover {
-            box-shadow: none;
-        }
+        &:hover {}
 
         svg {
             width: 20px;

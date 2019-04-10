@@ -5,7 +5,7 @@ import { List } from "immutable";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
 
-import { DarknodeID } from "../types/types";
+import { DarknodeID, NewDarknodeID } from "../types/types";
 
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
@@ -43,7 +43,7 @@ export const getAllDarknodeIDs = async (darknodeRegistryContract: Contract): Pro
         [lastDarknode] = darknodes.slice(-1);
     } while (lastDarknode !== NULL);
 
-    return allDarknodes.map(DarknodeID);
+    return allDarknodes.map(NewDarknodeID);
 };
 
 // /*

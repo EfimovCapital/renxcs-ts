@@ -1,6 +1,7 @@
 import { Currency, Record } from "@renex/react-components";
 import { List, Map as ImmutableMap, OrderedMap, Set } from "immutable";
 
+import { UTXO } from "../../lib/btc/btc";
 import { bootstrapNodes, WarpGateGroup } from "../../lib/darknode/darknodeGroup";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/errors";
 import { validateType } from "../../lib/persist";
@@ -28,6 +29,8 @@ const syncedGeneralData = new Map()
     .set("advancedTheme", "string")
     .set("redeemedUTXOs", "Set<string>")
     .set("renVMMessages", "Map<string, List<object>>")
+    .set("utxoToMessage", "Map<string, string>")
+    .set("messageToUtxos", "Map<string, List<object>>")
     .set("signatures", "Map<string, string>")
     .set("quoteCurrency", "string");
 export class GeneralData extends Record({
@@ -35,6 +38,8 @@ export class GeneralData extends Record({
     redeemedUTXOs: Set<string>(),
     renVMMessages: ImmutableMap<string, List<{ messageID: string, multiAddress: MultiAddress }>>(),
     signatures: ImmutableMap<string, string>(),
+    utxoToMessage: ImmutableMap<string, string>(),
+    messageToUtxos: ImmutableMap<string, List<UTXO>>(),
 
     darknodeGroup: new WarpGateGroup(bootstrapNodes),
 
@@ -75,6 +80,8 @@ export class GeneralData extends Record({
             _captureBackgroundException_(error, {
                 description: "cannot deserialize local storage",
             });
+            // TODO: Remove me!!!
+            alert("Check console!");
         }
         return next;
     }
