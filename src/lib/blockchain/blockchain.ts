@@ -1,7 +1,7 @@
 import { List } from "immutable";
 
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./btc/btc";
-import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./zec/zec";
+import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./btc/zec";
 
 export enum Currency {
     BTC = "btc",
