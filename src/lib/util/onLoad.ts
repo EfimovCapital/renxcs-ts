@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/browser";
 
-import { _catch_ } from "../components/views/ErrorBoundary";
+import { _catch_ } from "../../components/views/ErrorBoundary";
 import { environment, NETWORK, SENTRY_DSN, SOURCE_VERSION } from "./environmentVariables";
 import { pageLoadedAt } from "./errors";
 
@@ -15,7 +15,7 @@ export const onLoad = (title: string) => {
         environment,
 
         // Used to track errors across versions
-        release: SOURCE_VERSION,
+        release: SOURCE_VERSION || "local",
 
         // Only throw errors generated from scripts at these URLs
         whitelistUrls: [
@@ -34,18 +34,18 @@ export const onLoad = (title: string) => {
         // We set this to false when logging to Sentry explicitly.
         scope.setExtra("caught", false);
 
-        scope.setExtra("release", SOURCE_VERSION);
+        scope.setExtra("release", SOURCE_VERSION || "local");
 
         scope.setExtra("pageLoadedAt", pageLoadedAt());
     });
 
     // Update document title to show network
-    if (NETWORK !== "mainnet") {
+    if (NETWORK && NETWORK !== "mainnet") {
         document.title = `${title} (${NETWORK})`;
     } else {
         document.title = title; // Also set in index.html
     }
 
     // tslint:disable-next-line: no-console
-    console.log(`${title} version hash: ${SOURCE_VERSION}`);
+    console.log(`${title} version hash: ${SOURCE_VERSION || "local"}`);
 };

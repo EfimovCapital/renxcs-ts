@@ -10,14 +10,14 @@ import {
     SendMessageResponse,
 } from "./types";
 
-const bootStrapNode0 = NewMultiAddress("/ip4/3.88.22.140/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
-const bootStrapNode1 = NewMultiAddress("/ip4/34.219.91.31/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
-const bootStrapNode2 = NewMultiAddress("/ip4/3.92.234.171/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
-const bootStrapNode3 = NewMultiAddress("/ip4/35.183.181.45/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
-const bootStrapNode4 = NewMultiAddress("/ip4/13.233.251.189/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
-const bootStrapNode5 = NewMultiAddress("/ip4/34.221.196.212/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
-const bootStrapNode6 = NewMultiAddress("/ip4/35.158.105.90/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
-const bootStrapNode7 = NewMultiAddress("/ip4/52.67.113.89/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
+const bootStrapNode0 = NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
+const bootStrapNode1 = NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
+const bootStrapNode2 = NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
+const bootStrapNode3 = NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
+const bootStrapNode4 = NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
+const bootStrapNode5 = NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
+const bootStrapNode6 = NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
+const bootStrapNode7 = NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
 
 export const bootstrapNodes = [
     bootStrapNode0,
@@ -120,7 +120,9 @@ export class WarpGateGroup extends DarknodeGroup {
     }
 
     public submitDeposits = async (address: string): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
-        const results = await this.sendMessage({
+        // TODO: If one fails, still return the other.
+
+        const results1 = await this.sendMessage({
             nonce: 0,
             to: "WarpGate",
             signature: "",
@@ -133,6 +135,22 @@ export class WarpGateGroup extends DarknodeGroup {
                 ],
             },
         });
+
+        const results2 = await this.sendMessage({
+            nonce: 0,
+            to: "WarpGate",
+            signature: "",
+            payload: {
+                method: "MintZZEC",
+                args: [
+                    {
+                        value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
+                    }
+                ],
+            },
+        });
+
+        const results = results1.concat(results2);
 
         if (results.filter(x => x !== null).size < 1) {
             throw new Error("Unable to send message to enough darknodes.");

@@ -1,21 +1,18 @@
 import * as React from "react";
 
-import CircularProgressBar from "react-circular-progressbar";
 import Web3 from "web3";
 
-import { Loading, TokenIcon } from "@renex/react-components";
+import { List, Map } from "immutable";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
 
-import { createTestnetAddress, getTestnetUTXOs, UTXO } from "../../lib/btc/btc";
+import { DepositAddresses, UTXO } from "../../lib/blockchain/blockchain";
 import { addToMessageToUtxos, addToRedeemedUTXOs, addToRenVMMessages, addToSignatures, addToUtxoToMessage, setEthereumAddress } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
-
-import { List, Map } from "immutable";
-import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
-
-import "react-circular-progressbar/dist/styles.css";
+import { CurrenciesBlock } from "../views/CurrenciesBlock";
+import { ReceiveAddress } from "../views/ReceiveAddress";
+import { ShowUTXOs } from "../views/ShowUTXOs";
 
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
@@ -27,25 +24,6 @@ declare global {
         web3?: Web3;
     }
 }
-
-const showCircle = (percentage: number) => {
-    return <CircularProgressBar
-        className="circle--progress"
-        percentage={percentage}
-        strokeWidth={18}
-        styles={{
-            path: {
-                stroke: "#006FE8",
-                strokeLinecap: "butt",
-                // strokeOpacity: 0.6,
-            },
-            trail: {
-                stroke: "#006FE8",
-                strokeOpacity: 0.2,
-            },
-        }}
-    />;
-};
 
 const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     // Modern dApp browsers...
@@ -76,11 +54,12 @@ const SwapControllerClass = (props: Props) => {
     const [mounted, setMounted] = React.useState(false);
 
     const [error, setError] = React.useState<string | undefined>(undefined);
-    const [depositAddress, setDepositAddress] = React.useState<{ zec: string; btc: string; eth: string } | undefined>(undefined);
+    // tslint:disable-next-line: prefer-const
+    let [depositAddresses, setDepositAddresses] = React.useState<DepositAddresses | undefined>(undefined);
     const [checking, setChecking] = React.useState(false);
-    const [utxos, setUTXOs] = React.useState<UTXO[]>([]);
+    const [utxos, setUTXOs] = React.useState<List<UTXO>>(List());
     const [redeeming, setRedeeming] = React.useState(false);
-    const [showingDeposit, setShowingDeposit] = React.useState<string | undefined>();
+    const [blur, setBlur] = React.useState(false);
     // tslint:disable-next-line: prefer-const
     let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
     // tslint:disable-next-line: prefer-const
@@ -91,8 +70,9 @@ const SwapControllerClass = (props: Props) => {
         const element = (event.target as HTMLInputElement);
         const value = element.value;
         props.actions.setEthereumAddress(value);
-        setDepositAddress(undefined);
-        setUTXOs([]);
+        // setDepositAddresses(undefined);
+        // setUTXOs(List());
+        setBlur(true);
     };
 
     const resendMessage = async (time: string) => {
@@ -126,13 +106,13 @@ const SwapControllerClass = (props: Props) => {
         setCheckingResponse(checkingResponse);
     };
 
-    const onSubmit = async (altDepositAddress?: string) => {
-        altDepositAddress = altDepositAddress || (depositAddress && depositAddress.btc) || "";
-        if (!altDepositAddress) {
+    const onSubmit = async () => {
+        if (!depositAddresses) {
             setError(`No deposit address defined.`);
             return;
         }
 
+        setBlur(false);
         setChecking(true);
         setError(undefined);
 
@@ -141,12 +121,8 @@ const SwapControllerClass = (props: Props) => {
             return checkForResponse(time).catch(console.error);
         }).valueSeq().toArray();
 
-        try {
-            const newUTXOs = await getTestnetUTXOs(altDepositAddress, 10, 0);
-            setUTXOs(newUTXOs);
-        } catch (error) {
-            setError(`${error && error.toString ? error.toString() : error}`);
-        }
+        const newUtxos = await depositAddresses.getUTXOs();
+        setUTXOs(newUtxos);
 
         try {
             await Promise.all(promises);
@@ -167,22 +143,26 @@ const SwapControllerClass = (props: Props) => {
             e.preventDefault();
         }
         setError(undefined);
-        setUTXOs([]);
+
         if (ethereumAddress) {
-            let btcAddress: string;
-            try {
-                btcAddress = createTestnetAddress(ethereumAddress);
-            } catch (error) {
-                setError(`${error && error.toString ? error.toString() : error}`);
-                return;
+            if (depositAddresses && depositAddresses.receiveAddress === ethereumAddress) {
+                // do nothing
+            } else {
+                setUTXOs(List());
+                try {
+                    depositAddresses = new DepositAddresses(ethereumAddress);
+                    setDepositAddresses(depositAddresses);
+                } catch (error) {
+                    setError(`${error && error.toString ? error.toString() : error}`);
+                    return;
+                }
             }
-            setDepositAddress({ btc: btcAddress, zec: "NO ZCASH PLS", eth: ethereumAddress });
             // tslint:disable-next-line: no-console
-            onSubmit(btcAddress).catch(console.error);
+            onSubmit().catch(console.error);
         }
     };
 
-    if (!mounted && ethereumAddress && ethereumAddress.length === 42 && !depositAddress) {
+    if (!mounted && ethereumAddress && ethereumAddress.length === 42 && !depositAddresses) {
         onGenerateAddress();
     }
 
@@ -208,10 +188,10 @@ const SwapControllerClass = (props: Props) => {
             setError(`${error && error.toString ? error.toString() : error}`);
             return;
         }
-        for (const utxo of utxos) {
-            props.actions.addToRedeemedUTXOs(utxo.txHash);
-            props.actions.addToUtxoToMessage({ utxo: utxo.txHash, message: id });
-        }
+        utxos.map(utxo => {
+            props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
+            props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
+        });
         setRedeeming(false);
     };
 
@@ -219,25 +199,10 @@ const SwapControllerClass = (props: Props) => {
         try {
             const web3 = await getWeb3();
             const addresses = await web3.eth.getAccounts();
-            console.log(addresses);
             props.actions.setEthereumAddress(addresses[0]);
+            setBlur(true);
         } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
-        }
-    };
-
-    const hideDeposit = (): void => {
-        setShowingDeposit(undefined);
-    };
-
-    const showDeposit = (e: React.MouseEvent<HTMLDivElement>): void => {
-        const id = e.currentTarget.dataset ? e.currentTarget.dataset.id : undefined;
-        if (id) {
-            if (id === showingDeposit) {
-                hideDeposit();
-            } else {
-                setShowingDeposit(id);
-            }
         }
     };
 
@@ -256,100 +221,13 @@ const SwapControllerClass = (props: Props) => {
     };
 
     return <div className="swap container">
-        <div className="block">
-            <form onSubmit={onGenerateAddress} className="swap--eth--form">
-                <div className="swap--eth--input">
-                    <input type="text" value={ethereumAddress} onChange={onChange} placeholder="Enter Ethereum address for receiving" />
-                    <button type="button" className="metamask-logo" onClick={getMetaMaskAddress}><MetaMask /></button>
-                    <button type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress}>Go</button>
-                </div>
-            </form>
-        </div>
-        {depositAddress ?
-            <>
-                <div className="block">
-                    <h3>Currencies</h3>
-                    <div className="currencies">
-                        {["btc", "zec", "eth"].map((currency) => {
-                            return <div
-                                className={`currency ${currency}`}
-                                data-id={currency}
-                                onClick={showDeposit}
-                                role="button"
-                                key={currency}
-                            >
-                                <TokenIcon token={currency.toUpperCase()} />
-                            </div>;
-                        })}
-                    </div>
-
-                    <div className={`deposit-address ${showingDeposit}`}>
-                        <div>
-                            {showingDeposit ? <>Deposit {showingDeposit.toUpperCase()} to <b>{depositAddress[showingDeposit]}</b></> : null}
-                        </div>
-                    </div>
-                </div>
-
-                {error ? <p className="red">{error}</p> : null}
-
-                <div className="block deposits">
-                    <div className="deposits--title">
-                        <h3>Deposits</h3>
-                        <button disabled={checking} className="button--white" onClick={onRefresh}>{checking ? <div className="checking"><Loading /></div> : <>Refresh</>}</button>
-                    </div>
-                    {utxos.filter(utxo => !utxoToMessage.has(utxo.txHash)).map((utxo) => {
-                        const redeemingUTXO = redeemedUTXOs.contains(utxo.txHash);
-                        return <div key={utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} >
-                            {showCircle(33)}
-                            <div className="utxo--right">
-                                <span>Deposited <b>{utxo.amount / (10 ** 8)} BTC</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
-                                <a rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.txHash}`}>
-                                    <span className="utxo--txid">{utxo.txHash}</span>
-                                </a>
-                            </div>
-                            <div className="utxo--buttons">
-                                {!redeemingUTXO ? <button disabled={redeeming} className="button" onClick={onRedeem}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
-                            </div>
-                        </div>;
-                    })}
-                    {renVMMessages.map((renVMMessage, time) => {
-                        // const first = renVMMessage.first(undefined);
-                        const loading = signatures.has(time) ? redeemingOnEthereum.get(time) : checkingResponse.get(time);
-                        const messageUtxos = messageToUtxos.get(time);
-                        const value = messageUtxos ? messageUtxos.reduce((sum, utxo) => utxo.amount + sum, 0) : 0;
-                        return <div className="utxo" key={time}>
-                            {showCircle(66)}
-                            <div className="utxo--right">
-                                <span>Deposited <b>{value / (10 ** 8)} BTC</b></span>
-                                <span className="utxo--txid">Sent to <b>{renVMMessage.size} darknodes</b>. Awaiting response.</span>
-                                {/* <span>
-                                    {messageUtxos ? messageUtxos.map(utxo => <span key={utxo.txHash} className="utxo--txid">{utxo.txHash.slice(0, 8)}...</span>).toArray() : null}
-                                </span> */}
-                                {/* <span className="utxo--txid">{first ? first.messageID : ""}</span> */}
-                                {/* <span className="utxo--txid">{time}</span> */}
-                            </div>
-                            {signatures.has(time) ?
-                                <div className="utxo--buttons">
-                                    {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                    <button className="button" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
-                                </div>
-                                :
-                                <>
-                                    <div className="utxo--buttons">
-
-                                        {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                        <button className="button--white" onClick={() => { resendMessage(time).catch(console.error); }} disabled={resubmitting.has(time)}>{resubmitting.has(time) ? <Loading /> : <>Resend ren_sendMessage</>}</button>
-                                    </div>
-                                    <div className="utxo--buttons">
-                                        {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                        <button className="button--white" onClick={() => { checkForResponse(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Check for response</>}</button>
-                                    </div>
-                                </>
-                            }
-                        </div>;
-                    }).toList()}
-                </div>
-            </> : null}
+        <ReceiveAddress onGenerateAddress={onGenerateAddress} ethereumAddress={ethereumAddress} onChange={onChange} getMetaMaskAddress={getMetaMaskAddress} />
+        {error ? <p className="red">{error}</p> : null}
+        {depositAddresses ?
+            <div className={`swap--bottom ${blur ? "blur" : ""}`}>
+                <CurrenciesBlock depositAddresses={depositAddresses} />
+                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} resendMessage={resendMessage} checkForResponse={checkForResponse} resubmitting={resubmitting} />
+            </div> : null}
     </div >;
 };
 

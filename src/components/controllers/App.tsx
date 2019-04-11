@@ -6,8 +6,8 @@ import { bindActionCreators, Dispatch } from "redux";
 
 import { FeedbackButton, ScrollToTop as ScrollToTopWithoutRouter } from "@renex/react-components";
 
-import { _captureBackgroundException_ } from "../../lib/errors";
-import { history } from "../../lib/history";
+import { _captureBackgroundException_ } from "../../lib/util/errors";
+import { history } from "../../lib/util/history";
 import { ApplicationData } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
 import { BackgroundTasks } from "./BackgroundTasks";

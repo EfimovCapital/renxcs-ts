@@ -1,7 +1,7 @@
 import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 
-import { TokenPrices } from "../store/types/general";
+import { TokenPrices } from "../../store/types/general";
 
 export enum Token {
     DAI = "DAI",

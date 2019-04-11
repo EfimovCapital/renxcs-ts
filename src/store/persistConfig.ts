@@ -2,7 +2,7 @@ import storage from "redux-persist/lib/storage";
 
 import { createTransform, PersistConfig } from "redux-persist";
 
-import { _captureBackgroundException_ } from "../lib/errors";
+import { _captureBackgroundException_ } from "../lib/util/errors";
 import { ApplicationData, GeneralData } from "./types/general";
 
 // Local Storage:
@@ -33,7 +33,7 @@ const generalTransform = createTransform<GeneralData, string>(
 
 export const persistConfig: PersistConfig = {
     storage,
-    key: "root",
+    key: "ren",
     whitelist: ["general"] as Array<keyof ApplicationData>,
     transforms: [generalTransform],
 };

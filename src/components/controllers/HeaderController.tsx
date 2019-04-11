@@ -4,7 +4,7 @@ import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { _captureBackgroundException_ } from "../../lib/errors";
+import { _captureBackgroundException_ } from "../../lib/util/errors";
 import { setQuoteCurrency } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
@@ -47,6 +47,7 @@ class HeaderControllerClass extends React.Component<Props, State> {
         const { store: { quoteCurrency } } = this.props;
 
         const languageDropdown = <Dropdown
+            key="languageDropdown"
             selected={{
                 value: "EN",
                 render: "English",
@@ -56,6 +57,7 @@ class HeaderControllerClass extends React.Component<Props, State> {
         />;
 
         const currencyDropdown = <Dropdown
+            key="currencyDropdown"
             selected={{
                 value: quoteCurrency,
                 render: <>

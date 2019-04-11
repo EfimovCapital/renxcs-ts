@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 import { createStandardAction } from "typesafe-actions";
 
-import { getTokenPricesInCurrencies } from "../../../lib/market";
+import { getTokenPricesInCurrencies } from "../../../lib/util/market";
 import { TokenPrices } from "../../types/general";
 
 /**
