@@ -1,7 +1,7 @@
 import { List } from "immutable";
 
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./btc/btc";
-import { createZECTestnetAddress, ZcashUTXO } from "./zec/zec";
+import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./zec/zec";
 
 export enum Currency {
     BTC = "btc",
@@ -34,6 +34,16 @@ export class DepositAddresses {
             try {
                 const newBitcoinUTXOs: Array<{ currency: Currency.BTC, utxo: BitcoinUTXO }> = (await getBTCTestnetUTXOs(btcDepositAddress, limit, confirmations)).map(utxo => ({ currency: Currency.BTC, utxo }));
                 utxos = utxos.concat(List(newBitcoinUTXOs));
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        const zecDepositAddress = this.depositAddresses.get(Currency.ZEC);
+        if (zecDepositAddress) {
+            try {
+                const newZcashUTXOs: Array<{ currency: Currency.ZEC, utxo: BitcoinUTXO }> = (await getZECTestnetUTXOs(zecDepositAddress, limit, confirmations)).map(utxo => ({ currency: Currency.ZEC, utxo }));
+                utxos = utxos.concat(List(newZcashUTXOs));
             } catch (error) {
                 console.error(error);
             }
