@@ -83,7 +83,6 @@
         color: $red;
     }
 
-    .deposit-address,
     .deposits {
         width: 100%;
         border-radius: 8px;
@@ -91,45 +90,9 @@
 
     .deposit-address {
         font-size: 16px;
-        margin-top: 10px;
 
         transition: max-height 1s ease;
         overflow: hidden;
-        max-height: 0px;
-        background-color: white;
-
-        &.btc {
-            border: 1px solid #ccc;
-
-            * {
-                color: #F09242;
-            }
-
-            max-height: 100px;
-            padding: 10px;
-        }
-
-        &.zec {
-            border: 1px solid #ccc;
-
-            * {
-                color: rgb(244, 183, 40);
-            }
-
-            max-height: 100px;
-            padding: 10px;
-        }
-
-        &.eth {
-            border: 1px solid #ccc;
-
-            * {
-                color: #627eea;
-            }
-
-            max-height: 100px;
-            padding: 10px;
-        }
     }
 
     .deposits {
@@ -268,8 +231,11 @@
         align-items: center;
         background-size: 200% auto;
         transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+        min-width: 0;
 
-        &:hover {}
+        &.active {
+            width: 100%;
+        }
 
         svg {
             transform: scale(3);
@@ -283,7 +249,8 @@
                 fill: none;
             }
 
-            &:hover {
+            &:hover,
+            &.active {
                 background-position: right center;
             }
         }
@@ -300,7 +267,8 @@
                 fill: none;
             }
 
-            &:hover {
+            &:hover,
+            &.active {
                 background-position: right center;
             }
         }
@@ -313,7 +281,8 @@
                 fill: none;
             }
 
-            &:hover {
+            &:hover,
+            &.active {
                 background-position: right center;
             }
         }

@@ -12,6 +12,9 @@ import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
 const NULL = "0x0000000000000000000000000000000000000000";
 
+export const zBTCAddress = "0x1eada4c6ea17a57c71e01ed1714219ac5b86bb7c";
+export const zZECAddress = "0xfE3AB14c9cBaDbe3156c9A396F5eFd1e2e7cD1a3";
+
 export class Pod extends Record({
     id: "",
     darknodes: List<string>(),

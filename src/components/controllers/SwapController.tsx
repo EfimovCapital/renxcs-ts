@@ -7,7 +7,7 @@ import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
 
-import { DepositAddresses, UTXO } from "../../lib/blockchain/blockchain";
+import { DepositAddresses, UTXO } from "../../lib/blockchain/depositAddresses";
 import { addToMessageToUtxos, addToRedeemedUTXOs, addToRenVMMessages, addToSignatures, addToUtxoToMessage, setEthereumAddress } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
 import { CurrenciesBlock } from "../views/CurrenciesBlock";
