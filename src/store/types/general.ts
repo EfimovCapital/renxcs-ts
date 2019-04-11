@@ -1,7 +1,7 @@
 import { Currency, Record } from "@renex/react-components";
 import { List, Map as ImmutableMap, OrderedMap, Set } from "immutable";
 
-import { UTXO } from "../../lib/blockchain/blockchain";
+import { UTXO } from "../../lib/blockchain/depositAddresses";
 import { bootstrapNodes, WarpGateGroup } from "../../lib/darknode/darknodeGroup";
 import { MultiAddress } from "../../lib/types/types";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/util/errors";

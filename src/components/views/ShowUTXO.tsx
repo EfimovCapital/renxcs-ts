@@ -5,7 +5,7 @@ import CircularProgressBar from "react-circular-progressbar";
 import { Loading } from "@renex/react-components";
 import { List, Map } from "immutable";
 
-import { UTXO } from "../../lib/blockchain/blockchain";
+import { UTXO } from "../../lib/blockchain/depositAddresses";
 
 import "react-circular-progressbar/dist/styles.css";
 import { MultiAddress } from "../../lib/types/types";

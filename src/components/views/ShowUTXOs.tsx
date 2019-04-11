@@ -3,7 +3,7 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { List, Map } from "immutable";
 
-import { UTXO } from "../../lib/blockchain/blockchain";
+import { UTXO } from "../../lib/blockchain/depositAddresses";
 import { MultiAddress } from "../../lib/types/types";
 import { ShowUTXO } from "./ShowUTXO";
 
