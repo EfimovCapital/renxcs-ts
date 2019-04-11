@@ -205,6 +205,8 @@
             flex-flow: column;
             width: 100%;
             align-items: flex-start;
+            min-width: 50px;
+            overflow: hidden;
         }
 
         >*+* {
@@ -231,6 +233,7 @@
         z-index: 3;
         height: 44px;
         width: 100%;
+        min-width: 100px;
 
         &:hover {
             // border-color: rgba(223, 225, 229, 0);

@@ -47,6 +47,7 @@ class HeaderControllerClass extends React.Component<Props, State> {
         const { store: { quoteCurrency } } = this.props;
 
         const languageDropdown = <Dropdown
+            key="languageDropdown"
             selected={{
                 value: "EN",
                 render: "English",
@@ -56,6 +57,7 @@ class HeaderControllerClass extends React.Component<Props, State> {
         />;
 
         const currencyDropdown = <Dropdown
+            key="currencyDropdown"
             selected={{
                 value: quoteCurrency,
                 render: <>
