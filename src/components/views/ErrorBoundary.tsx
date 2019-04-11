@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/browser";
 import * as React from "react";
 
-import { _captureComponentException_ } from "../../lib/errors";
+import { _captureComponentException_ } from "../../lib/util/errors";
 
 class ErrorBoundary extends React.Component<Props, State> {
     constructor(props: Props) {

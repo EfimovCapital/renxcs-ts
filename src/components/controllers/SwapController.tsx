@@ -4,15 +4,15 @@ import CircularProgressBar from "react-circular-progressbar";
 import Web3 from "web3";
 
 import { Loading, TokenIcon } from "@renex/react-components";
+import { List, Map } from "immutable";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
 
-import { createTestnetAddress, getTestnetUTXOs, UTXO } from "../../lib/btc/btc";
+import { Currency, DepositAddresses, UTXO } from "../../lib/blockchain/blockchain";
 import { addToMessageToUtxos, addToRedeemedUTXOs, addToRenVMMessages, addToSignatures, addToUtxoToMessage, setEthereumAddress } from "../../store/actions/general/generalActions";
 import { ApplicationData } from "../../store/types/general";
 
-import { List, Map } from "immutable";
 import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
 
 import "react-circular-progressbar/dist/styles.css";
@@ -76,11 +76,13 @@ const SwapControllerClass = (props: Props) => {
     const [mounted, setMounted] = React.useState(false);
 
     const [error, setError] = React.useState<string | undefined>(undefined);
-    const [depositAddress, setDepositAddress] = React.useState<{ zec: string; btc: string; eth: string } | undefined>(undefined);
+    // tslint:disable-next-line: prefer-const
+    let [depositAddresses, setDepositAddresses] = React.useState<DepositAddresses | undefined>(undefined);
     const [checking, setChecking] = React.useState(false);
-    const [utxos, setUTXOs] = React.useState<UTXO[]>([]);
+    const [utxos, setUTXOs] = React.useState<List<UTXO>>(List());
     const [redeeming, setRedeeming] = React.useState(false);
-    const [showingDeposit, setShowingDeposit] = React.useState<string | undefined>();
+    const [showingDeposit, setShowingDeposit] = React.useState<Currency | undefined>();
+    const [blur, setBlur] = React.useState(false);
     // tslint:disable-next-line: prefer-const
     let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
     // tslint:disable-next-line: prefer-const
@@ -91,8 +93,9 @@ const SwapControllerClass = (props: Props) => {
         const element = (event.target as HTMLInputElement);
         const value = element.value;
         props.actions.setEthereumAddress(value);
-        setDepositAddress(undefined);
-        setUTXOs([]);
+        // setDepositAddresses(undefined);
+        // setUTXOs(List());
+        setBlur(true);
     };
 
     const resendMessage = async (time: string) => {
@@ -126,13 +129,13 @@ const SwapControllerClass = (props: Props) => {
         setCheckingResponse(checkingResponse);
     };
 
-    const onSubmit = async (altDepositAddress?: string) => {
-        altDepositAddress = altDepositAddress || (depositAddress && depositAddress.btc) || "";
-        if (!altDepositAddress) {
+    const onSubmit = async () => {
+        if (!depositAddresses) {
             setError(`No deposit address defined.`);
             return;
         }
 
+        setBlur(false);
         setChecking(true);
         setError(undefined);
 
@@ -141,12 +144,8 @@ const SwapControllerClass = (props: Props) => {
             return checkForResponse(time).catch(console.error);
         }).valueSeq().toArray();
 
-        try {
-            const newUTXOs = await getTestnetUTXOs(altDepositAddress, 10, 0);
-            setUTXOs(newUTXOs);
-        } catch (error) {
-            setError(`${error && error.toString ? error.toString() : error}`);
-        }
+        const newUtxos = await depositAddresses.getUTXOs();
+        setUTXOs(newUtxos);
 
         try {
             await Promise.all(promises);
@@ -167,22 +166,26 @@ const SwapControllerClass = (props: Props) => {
             e.preventDefault();
         }
         setError(undefined);
-        setUTXOs([]);
+
         if (ethereumAddress) {
-            let btcAddress: string;
-            try {
-                btcAddress = createTestnetAddress(ethereumAddress);
-            } catch (error) {
-                setError(`${error && error.toString ? error.toString() : error}`);
-                return;
+            if (depositAddresses && depositAddresses.receiveAddress === ethereumAddress) {
+                // do nothing
+            } else {
+                setUTXOs(List());
+                try {
+                    depositAddresses = new DepositAddresses(ethereumAddress);
+                    setDepositAddresses(depositAddresses);
+                } catch (error) {
+                    setError(`${error && error.toString ? error.toString() : error}`);
+                    return;
+                }
             }
-            setDepositAddress({ btc: btcAddress, zec: "NO ZCASH PLS", eth: ethereumAddress });
             // tslint:disable-next-line: no-console
-            onSubmit(btcAddress).catch(console.error);
+            onSubmit().catch(console.error);
         }
     };
 
-    if (!mounted && ethereumAddress && ethereumAddress.length === 42 && !depositAddress) {
+    if (!mounted && ethereumAddress && ethereumAddress.length === 42 && !depositAddresses) {
         onGenerateAddress();
     }
 
@@ -208,10 +211,10 @@ const SwapControllerClass = (props: Props) => {
             setError(`${error && error.toString ? error.toString() : error}`);
             return;
         }
-        for (const utxo of utxos) {
-            props.actions.addToRedeemedUTXOs(utxo.txHash);
-            props.actions.addToUtxoToMessage({ utxo: utxo.txHash, message: id });
-        }
+        utxos.map(utxo => {
+            props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
+            props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
+        });
         setRedeeming(false);
     };
 
@@ -219,8 +222,8 @@ const SwapControllerClass = (props: Props) => {
         try {
             const web3 = await getWeb3();
             const addresses = await web3.eth.getAccounts();
-            console.log(addresses);
             props.actions.setEthereumAddress(addresses[0]);
+            setBlur(true);
         } catch (error) {
             setError(`${error && error.toString ? error.toString() : error}`);
         }
@@ -236,7 +239,7 @@ const SwapControllerClass = (props: Props) => {
             if (id === showingDeposit) {
                 hideDeposit();
             } else {
-                setShowingDeposit(id);
+                setShowingDeposit(id as Currency);
             }
         }
     };
@@ -265,12 +268,13 @@ const SwapControllerClass = (props: Props) => {
                 </div>
             </form>
         </div>
-        {depositAddress ?
-            <>
+        {error ? <p className="red">{error}</p> : null}
+        {depositAddresses ?
+            <div className={`swap--bottom ${blur ? "blur" : ""}`}>
                 <div className="block">
                     <h3>Currencies</h3>
                     <div className="currencies">
-                        {["btc", "zec", "eth"].map((currency) => {
+                        {[Currency.BTC, Currency.ZEC, Currency.ETH].map((currency) => {
                             return <div
                                 className={`currency ${currency}`}
                                 data-id={currency}
@@ -285,30 +289,28 @@ const SwapControllerClass = (props: Props) => {
 
                     <div className={`deposit-address ${showingDeposit}`}>
                         <div>
-                            {showingDeposit ? <>Deposit {showingDeposit.toUpperCase()} to <b>{depositAddress[showingDeposit]}</b></> : null}
+                            {showingDeposit ? <>Deposit {showingDeposit.toUpperCase()} to <b>{depositAddresses.depositAddresses.get(showingDeposit)}</b></> : null}
                         </div>
                     </div>
                 </div>
-
-                {error ? <p className="red">{error}</p> : null}
 
                 <div className="block deposits">
                     <div className="deposits--title">
                         <h3>Deposits</h3>
                         <button disabled={checking} className="button--white" onClick={onRefresh}>{checking ? <div className="checking"><Loading /></div> : <>Refresh</>}</button>
                     </div>
-                    {utxos.filter(utxo => !utxoToMessage.has(utxo.txHash)).map((utxo) => {
-                        const redeemingUTXO = redeemedUTXOs.contains(utxo.txHash);
-                        return <div key={utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} >
+                    {utxos.filter(utxo => !utxoToMessage.has(utxo.utxo.txHash)).map((utxo) => {
+                        const redeemingUTXO = redeemedUTXOs.contains(utxo.utxo.txHash);
+                        return <div key={utxo.utxo.txHash} className={`utxo ${redeemingUTXO ? "utxo--redeemed" : ""}`} >
                             {showCircle(33)}
                             <div className="utxo--right">
-                                <span>Deposited <b>{utxo.amount / (10 ** 8)} BTC</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
-                                <a rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.txHash}`}>
-                                    <span className="utxo--txid">{utxo.txHash}</span>
+                                <span>Deposited <b>{utxo.utxo.amount / (10 ** 8)} {utxo.currency.toUpperCase()}</b>{redeemingUTXO ? <>{" "}<span className="tag">REDEEMING</span></> : null}</span>
+                                <a rel="noreferrer" target="_blank" href={`https://live.blockcypher.com/btc-testnet/tx/${utxo.utxo.txHash}`}>
+                                    <span className="utxo--txid">{utxo.utxo.txHash}</span>
                                 </a>
                             </div>
                             <div className="utxo--buttons">
-                                {!redeemingUTXO ? <button disabled={redeeming} className="button" onClick={onRedeem}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
+                                {!redeemingUTXO ? <button disabled={redeeming} className="button--blue" onClick={onRedeem}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
                             </div>
                         </div>;
                     })}
@@ -316,7 +318,8 @@ const SwapControllerClass = (props: Props) => {
                         // const first = renVMMessage.first(undefined);
                         const loading = signatures.has(time) ? redeemingOnEthereum.get(time) : checkingResponse.get(time);
                         const messageUtxos = messageToUtxos.get(time);
-                        const value = messageUtxos ? messageUtxos.reduce((sum, utxo) => utxo.amount + sum, 0) : 0;
+                        console.log(messageUtxos);
+                        const value = messageUtxos ? messageUtxos.reduce((sum, utxo) => utxo.utxo.amount + sum, 0) : 0;
                         return <div className="utxo" key={time}>
                             {showCircle(66)}
                             <div className="utxo--right">
@@ -331,7 +334,7 @@ const SwapControllerClass = (props: Props) => {
                             {signatures.has(time) ?
                                 <div className="utxo--buttons">
                                     {/* tslint:disable-next-line: react-this-binding-issue jsx-no-lambda */}
-                                    <button className="button" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
+                                    <button className="button--blue" onClick={() => { redeemOnEthereum(time).catch(console.error); }} disabled={loading}>{loading ? <Loading /> : <>Redeem on Ethereum</>}</button>
                                 </div>
                                 :
                                 <>
@@ -349,7 +352,7 @@ const SwapControllerClass = (props: Props) => {
                         </div>;
                     }).toList()}
                 </div>
-            </> : null}
+            </div> : null}
     </div >;
 };
 

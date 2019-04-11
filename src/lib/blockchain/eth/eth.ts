@@ -5,7 +5,7 @@ import { List } from "immutable";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
 
-import { DarknodeID, NewDarknodeID } from "../types/types";
+import { DarknodeID, NewDarknodeID } from "../../types/types";
 
 import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";

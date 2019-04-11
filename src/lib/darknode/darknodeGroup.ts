@@ -120,7 +120,9 @@ export class WarpGateGroup extends DarknodeGroup {
     }
 
     public submitDeposits = async (address: string): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
-        const results = await this.sendMessage({
+        // TODO: If one fails, still return the other.
+
+        const results1 = await this.sendMessage({
             nonce: 0,
             to: "WarpGate",
             signature: "",
@@ -133,6 +135,22 @@ export class WarpGateGroup extends DarknodeGroup {
                 ],
             },
         });
+
+        const results2 = await this.sendMessage({
+            nonce: 0,
+            to: "WarpGate",
+            signature: "",
+            payload: {
+                method: "MintZZEC",
+                args: [
+                    {
+                        value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
+                    }
+                ],
+            },
+        });
+
+        const results = results1.concat(results2);
 
         if (results.filter(x => x !== null).size < 1) {
             throw new Error("Unable to send message to enough darknodes.");

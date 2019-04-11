@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Currency } from "@renex/react-components";
 import { BigNumber } from "bignumber.js";
-import { Token } from "../../lib/market";
+import { Token } from "../../lib/util/market";
 
 export class TokenBalance extends React.Component<Props, State> {
     public render = (): JSX.Element => {

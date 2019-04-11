@@ -3,7 +3,7 @@ import thunk from "redux-thunk";
 import { Action, applyMiddleware, createStore, Middleware, Reducer } from "redux";
 import { PersistConfig, persistReducer } from "redux-persist";
 
-import { environment } from "../lib/environmentVariables";
+import { environment } from "../lib/util/environmentVariables";
 import { rootReducer } from "../store/reducers/rootReducer";
 import { persistConfig } from "./persistConfig";
 

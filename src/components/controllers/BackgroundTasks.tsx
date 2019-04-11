@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { bindActionCreators, Dispatch } from "redux";
 
-import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/errors";
+import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/util/errors";
 // import { getMarketPrice } from "../lib/market";
 import { updatePrices, updateTokenPrices } from "../../store/actions/market/marketActions";
 import { ApplicationData } from "../../store/types/general";

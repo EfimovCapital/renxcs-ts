@@ -7,7 +7,7 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { App } from "./components/controllers/App";
 import { _catch_ } from "./components/views/ErrorBoundary";
-import { onLoad } from "./lib/onLoad";
+import { onLoad } from "./lib/util/onLoad";
 import { configureStore } from "./store/configureStore";
 
 import "./styles/index.scss";
