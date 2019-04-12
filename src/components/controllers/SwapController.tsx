@@ -25,14 +25,14 @@ declare global {
     }
 }
 
-const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
+export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     // Modern dApp browsers...
     if (window.ethereum) {
         window.web3 = new Web3(window.ethereum);
         try {
             // Request account access if needed
             await window.ethereum.enable();
-            resolve(window.web3);
+            resolve(new Web3(window.web3.currentProvider));
 
         } catch (error) {
             reject(error);
@@ -41,7 +41,7 @@ const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
         // Legacy dApp browsers...
         window.web3 = new Web3(window.web3.currentProvider);
         // Accounts always exposed
-        resolve(window.web3);
+        resolve(new Web3(window.web3.currentProvider));
     } else {
         // Non-dApp browsers...
         reject("Non-Ethereum browser detected. You should consider trying MetaMask!");
@@ -73,20 +73,6 @@ const SwapControllerClass = (props: Props) => {
         // setDepositAddresses(undefined);
         // setUTXOs(List());
         setBlur(true);
-    };
-
-    const resendMessage = async (time: string) => {
-        if (ethereumAddress) {
-            resubmitting = resubmitting.set(time, true);
-            setResubmitting(resubmitting);
-            try {
-                await darknodeGroup.submitDeposits(ethereumAddress);
-            } catch (error) {
-                console.error(error);
-            }
-            resubmitting = resubmitting.delete(time);
-            setResubmitting(resubmitting);
-        }
     };
 
     const checkForResponse = async (id: string) => {
@@ -170,28 +156,26 @@ const SwapControllerClass = (props: Props) => {
         setMounted(true);
     }
 
-    const onRedeem = async () => {
+    const onRedeem = async (utxo: UTXO) => {
         setRedeeming(true);
         if (!ethereumAddress) {
             return;
         }
 
-        const id = Date().toString();
+        const id = utxo.utxo.txHash;
 
         try {
-            const messages = await darknodeGroup.submitDeposits(ethereumAddress);
+            const messages = await darknodeGroup.submitDeposits(ethereumAddress, utxo);
             props.actions.addToRenVMMessages({ utxo: id, messages });
-            props.actions.addToMessageToUtxos({ message: id, utxos: List(utxos) });
+            props.actions.addToMessageToUtxos({ message: id, utxos: List([utxo]) });
         } catch (error) {
             console.error(error);
             setRedeeming(false);
             setError(`${error && error.toString ? error.toString() : error}`);
             return;
         }
-        utxos.map(utxo => {
-            props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
-            props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
-        });
+        props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
+        props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
         setRedeeming(false);
     };
 
@@ -226,7 +210,7 @@ const SwapControllerClass = (props: Props) => {
         {depositAddresses ?
             <div className={`swap--bottom ${blur ? "blur" : ""}`}>
                 <CurrenciesBlock depositAddresses={depositAddresses} />
-                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} resendMessage={resendMessage} checkForResponse={checkForResponse} resubmitting={resubmitting} />
+                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} resubmitting={resubmitting} />
             </div> : null}
     </div >;
 };

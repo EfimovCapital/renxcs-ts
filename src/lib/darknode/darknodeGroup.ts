@@ -10,6 +10,7 @@ import {
     SendMessageRequest,
     SendMessageResponse,
 } from "./types";
+import { UTXO, Currency } from "../blockchain/depositAddresses";
 
 const bootStrapNode0 = NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
 const bootStrapNode1 = NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
@@ -124,15 +125,22 @@ export class WarpGateGroup extends DarknodeGroup {
         // this.getHealth();
     }
 
-    public submitDeposits = async (address: string): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
+    public submitDeposits = async (address: string, utxo: UTXO): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
         // TODO: If one fails, still return the other.
 
-        const results1 = await this.sendMessage({
+        const method = utxo.currency === Currency.BTC ? "MintZBTC"
+            : utxo.currency === Currency.ZEC ? "MintZZEC" : undefined;
+
+        if (!method) {
+            throw new Error(`Minting ${utxo.currency} not supported`);
+        }
+
+        const results = await this.sendMessage({
             nonce: 0,
             to: "WarpGate",
             signature: "",
             payload: {
-                method: "MintZBTC",
+                method,
                 args: [
                     {
                         value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
@@ -140,22 +148,6 @@ export class WarpGateGroup extends DarknodeGroup {
                 ],
             },
         });
-
-        const results2 = await this.sendMessage({
-            nonce: 0,
-            to: "WarpGate",
-            signature: "",
-            payload: {
-                method: "MintZZEC",
-                args: [
-                    {
-                        value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
-                    }
-                ],
-            },
-        });
-
-        const results = results1.concat(results2);
 
         if (results.filter(x => x !== null).size < 1) {
             throw new Error("Unable to send message to enough darknodes.");

@@ -175,6 +175,10 @@
         >*+* {
             margin-top: 5px;
         }
+
+        &.done {
+            opacity: 0.5;
+        }
     }
 
     .utxo--txid {
@@ -197,10 +201,6 @@
         height: 44px;
         width: 100%;
         min-width: 100px;
-
-        &:hover {
-            // border-color: rgba(223, 225, 229, 0);
-        }
 
         input[type=text] {
             height: 100%;
@@ -241,6 +241,7 @@
         &.active {
             width: 100%;
             min-width: 550px;
+            cursor: initial;
         }
 
         svg {
@@ -321,8 +322,6 @@
         display: flex;
         justify-content: center;
         margin-left: 5px;
-
-        &:hover {}
 
         svg {
             width: 20px;

@@ -93,5 +93,5 @@ export type ReceiveMessageResponse = JSONRPCResponse<{
 }>;
 
 export type RenVMReceiveMessageResponse = JSONRPCResponse<{
-    result: [PublicParam, PublicParam, PublicParam];
+    result: [PublicParam];
 }>;

@@ -428,6 +428,7 @@ declare module "bitcore-lib" {
         readonly network: Networks.Network;
         readonly type: string;
         readonly toString(): string;
+        readonly toBuffer(): Buffer;
 
         constructor(data: Buffer | Uint8Array | string | object, network?: Networks.Network, type?: string);
     }
@@ -869,6 +870,7 @@ declare module "bitcore-lib-zcash" {
         readonly network: Networks.Network;
         readonly type: string;
         readonly toString(): string;
+        readonly toBuffer(): Buffer;
 
         constructor(data: Buffer | Uint8Array | string | object, network?: Networks.Network, type?: string);
     }

@@ -1,12 +1,14 @@
 import { List, Map as ImmutableMap } from "immutable";
 
+import BigNumber from "bignumber.js";
 import Web3 from "web3";
 
 import { Contract } from "web3-eth-contract";
 
+import { getWeb3 } from "../../components/controllers/SwapController";
 import { INFURA } from "../util/environmentVariables";
-import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./btc/btc";
-import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./btc/zec";
+import { BitcoinUTXO, btcAddressToHex, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./btc/btc";
+import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO, zecAddressToHex } from "./btc/zec";
 import { bridgedToken, zBTCAddress, zZECAddress } from "./eth/eth";
 
 export enum Currency {
@@ -14,6 +16,29 @@ export enum Currency {
     ZEC = "zec",
     ETH = "eth"
 }
+export const CurrencyList = [Currency.BTC, Currency.ZEC, Currency.ETH];
+
+export const CurrencyDecimals = (currency: Currency): number => {
+    switch (currency) {
+        case Currency.BTC:
+            return 8;
+        case Currency.ZEC:
+            return 8;
+        case Currency.ETH:
+            return 18;
+    }
+};
+
+export const CurrencyColor = (currency: Currency): string => {
+    switch (currency) {
+        case Currency.BTC:
+            return "#F09242";
+        case Currency.ZEC:
+            return "rgb(244, 183, 40)";
+        case Currency.ETH:
+            return "#627eea";
+    }
+};
 
 export type UTXO = { currency: Currency.BTC, utxo: BitcoinUTXO } | { currency: Currency.ZEC, utxo: ZcashUTXO };
 
@@ -91,16 +116,47 @@ export class DepositAddresses {
         switch (currency) {
             case Currency.BTC:
                 return (this.web3 && this.zBTC) ?
-                    this.web3.utils.fromWei((await this.zBTC.methods.balanceOf(this.receiveAddress).call()).toString()) :
+                    new BigNumber(await this.zBTC.methods.balanceOf(this.receiveAddress).call()).div(10 ** CurrencyDecimals(Currency.BTC)).toFixed() :
                     "0";
             case Currency.ZEC:
                 return (this.web3 && this.zZEC) ?
-                    this.web3.utils.fromWei((await this.zZEC.methods.balanceOf(this.receiveAddress).call()).toString()) :
+                    new BigNumber(await this.zZEC.methods.balanceOf(this.receiveAddress).call()).div(10 ** CurrencyDecimals(Currency.BTC)).toFixed() :
                     "0";
             case Currency.ETH:
-                return (this.web3) ?
-                    this.web3.utils.fromWei((await this.web3.eth.getBalance(this.receiveAddress)).toString()) :
-                    "0";
+                // return (this.web3) ?
+                // this.web3.utils.fromWei((await this.web3.eth.getBalance(this.receiveAddress)).toString()) :
+                return "0";
         }
+    }
+
+    public burn = async (currency: Currency, to: string, amount: string) => {
+        let web3;
+        try {
+            web3 = await getWeb3();
+        } catch (error) {
+            throw new Error("Unable to connect to Web3 browser.");
+        }
+        const network = await web3.eth.net.getNetworkType();
+        if (network !== "kovan") {
+            throw new Error("Please change your Web3 browser network to Kovan");
+        }
+        const addresses = (await web3.eth.getAccounts()).map(a => a.toUpperCase());
+        if (addresses.indexOf(this.receiveAddress.toUpperCase()) === -1) {
+            throw new Error("Please switch to the selected address in your Web3 browser");
+        }
+
+        const contract = currency === Currency.BTC ? bridgedToken(web3, zBTCAddress) :
+            currency === Currency.ZEC ? bridgedToken(web3, zZECAddress) :
+                undefined;
+
+        if (contract === undefined) {
+            throw new Error("Something went wrong, please reload and try again");
+        }
+
+        const toHex = currency === Currency.BTC ? btcAddressToHex(to) :
+            currency === Currency.ZEC ? zecAddressToHex(to) :
+                to;
+
+        await contract.methods.burn(toHex, new BigNumber(amount).multipliedBy(10 ** CurrencyDecimals(currency)).toFixed()).send({ from: this.receiveAddress });
     }
 }

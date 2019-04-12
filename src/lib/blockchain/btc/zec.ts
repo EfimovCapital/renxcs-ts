@@ -1,4 +1,4 @@
-import { Networks, Opcode, Script } from "bitcore-lib-zcash";
+import { Address, Networks, Opcode, Script } from "bitcore-lib-zcash";
 
 import { testnetMasterPKH } from "../../darknode/publicKey";
 import { getUTXOs } from "../mercury";
@@ -18,3 +18,5 @@ export interface ZcashUTXO {
 export const getZECTestnetUTXOs = getUTXOs<ZcashUTXO>(testnetMercury);
 
 export const createZECTestnetAddress = createZECAddress({ mainnet: false, masterPKH: testnetMasterPKH });
+
+export const zecAddressToHex = (address: string) => `0x${(new Address(address)).toBuffer().toString("hex")}`;

@@ -1,4 +1,4 @@
-import { Networks, Opcode, Script } from "bitcore-lib";
+import { Address, Networks, Opcode, Script } from "bitcore-lib";
 
 import { testnetMasterPKH } from "../../darknode/publicKey";
 import { getUTXOs } from "../mercury";
@@ -18,3 +18,5 @@ export interface BitcoinUTXO {
 export const getBTCTestnetUTXOs = getUTXOs<BitcoinUTXO>(testnetMercury);
 
 export const createBTCTestnetAddress = createBTCAddress({ mainnet: false, masterPKH: testnetMasterPKH });
+
+export const btcAddressToHex = (address: string) => `0x${(new Address(address)).toBuffer().toString("hex")}`;

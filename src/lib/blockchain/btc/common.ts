@@ -1,8 +1,8 @@
-import { Networks as BNetworks, Opcode as BOpcode, Script as ZScript } from "bitcore-lib";
+import { Networks as BNetworks, Opcode as BOpcode, Script as bScript } from "bitcore-lib";
 import { Networks as ZNetworks, Opcode as ZOpcode, Script as zScript } from "bitcore-lib-zcash";
 
 export const createAddress =
-    (networks: typeof BNetworks | typeof ZNetworks, opcode: typeof BOpcode | typeof ZOpcode, script: typeof ZScript | typeof zScript) =>
+    (networks: typeof BNetworks | typeof ZNetworks, opcode: typeof BOpcode | typeof ZOpcode, script: typeof bScript | typeof zScript) =>
         ({ mainnet, masterPKH }: { mainnet: boolean, masterPKH: Buffer }) =>
             (address: string) =>
                 new script()

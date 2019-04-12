@@ -27,7 +27,7 @@
     "stateMutability": "nonpayable",
     "type": "function"
 }, {
-    "constant": true,
+    "constant": false,
     "inputs": [{
         "name": "_to",
         "type": "address"
@@ -38,16 +38,19 @@
         "name": "_hash",
         "type": "bytes32"
     }, {
-        "name": "_sig",
-        "type": "bytes"
+        "name": "_r",
+        "type": "bytes32"
+    }, {
+        "name": "_s",
+        "type": "bytes32"
+    }, {
+        "name": "_v",
+        "type": "uint8"
     }],
-    "name": "verifySig",
-    "outputs": [{
-        "name": "",
-        "type": "bool"
-    }],
+    "name": "mint",
+    "outputs": [],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
 }, {
     "constant": true,
@@ -161,26 +164,6 @@
 }, {
     "constant": false,
     "inputs": [{
-        "name": "_to",
-        "type": "address"
-    }, {
-        "name": "_amount",
-        "type": "uint256"
-    }, {
-        "name": "_hash",
-        "type": "bytes32"
-    }, {
-        "name": "_sig",
-        "type": "bytes"
-    }],
-    "name": "mint",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-}, {
-    "constant": false,
-    "inputs": [{
         "name": "spender",
         "type": "address"
     }, {
@@ -215,6 +198,20 @@
 }, {
     "constant": true,
     "inputs": [{
+        "name": "",
+        "type": "bytes32"
+    }],
+    "name": "spent",
+    "outputs": [{
+        "name": "",
+        "type": "bool"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+}, {
+    "constant": true,
+    "inputs": [{
         "name": "_to",
         "type": "address"
     }, {
@@ -231,6 +228,35 @@
     }],
     "payable": false,
     "stateMutability": "pure",
+    "type": "function"
+}, {
+    "constant": true,
+    "inputs": [{
+        "name": "_to",
+        "type": "address"
+    }, {
+        "name": "_amount",
+        "type": "uint256"
+    }, {
+        "name": "_hash",
+        "type": "bytes32"
+    }, {
+        "name": "_r",
+        "type": "bytes32"
+    }, {
+        "name": "_s",
+        "type": "bytes32"
+    }, {
+        "name": "_v",
+        "type": "uint8"
+    }],
+    "name": "verifySig",
+    "outputs": [{
+        "name": "",
+        "type": "bool"
+    }],
+    "payable": false,
+    "stateMutability": "view",
     "type": "function"
 }, {
     "constant": true,
@@ -253,6 +279,15 @@
     "inputs": [{
         "name": "_owner",
         "type": "address"
+    }, {
+        "name": "_name",
+        "type": "string"
+    }, {
+        "name": "_symbol",
+        "type": "string"
+    }, {
+        "name": "_decimals",
+        "type": "uint8"
     }],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -267,10 +302,6 @@
         "indexed": false,
         "name": "_amount",
         "type": "uint256"
-    }, {
-        "indexed": false,
-        "name": "_sig",
-        "type": "bytes"
     }],
     "name": "LogMint",
     "type": "event"
