@@ -51,7 +51,6 @@ export type Props = {
     messageToUtxos: Map<string, List<UTXO>>;
     redeemOnEthereum: (id: string) => Promise<void>;
     checkForResponse: (id: string) => Promise<void>;
-    resubmitting: Map<string, boolean>;
 };
 
 export const ShowUTXO = (props: Props) => {
@@ -73,7 +72,7 @@ export const ShowUTXO = (props: Props) => {
             </div>
         </div>;
     } else {
-        const { signatures, redeemingOnEthereum, checkingResponse, time, renVMMessage, messageToUtxos, redeemOnEthereum, checkForResponse, resubmitting } = props;
+        const { signatures, redeemingOnEthereum, checkingResponse, time, renVMMessage, messageToUtxos, redeemOnEthereum, checkForResponse } = props;
         // const first = renVMMessage.first(undefined);
         const loading = signatures.has(time) ? redeemingOnEthereum.get(time) : checkingResponse.get(time);
         const messageUtxos = messageToUtxos.get(time);

@@ -3,7 +3,7 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { List, Map } from "immutable";
 
-import { UTXO } from "../../lib/blockchain/depositAddresses";
+import { UTXO, CurrencyList, Currency } from "../../lib/blockchain/depositAddresses";
 import { MultiAddress } from "../../lib/types/types";
 import { ShowUTXO } from "./ShowUTXO";
 
@@ -15,7 +15,7 @@ interface Props {
     utxoToMessage: Map<string, string>;
     // tslint:disable-next-line: no-any
     redeemedUTXOs: any;
-    redeeming: boolean;
+    redeeming: Map<string, boolean>;
     onRedeem: (utxo: UTXO) => Promise<void>;
     renVMMessages: Map<string, List<{
         messageID: string;
@@ -27,29 +27,34 @@ interface Props {
     messageToUtxos: Map<string, List<UTXO>>;
     redeemOnEthereum: (id: string) => Promise<void>;
     checkForResponse: (id: string) => Promise<void>;
-    resubmitting: Map<string, boolean>;
 }
 
-export const ShowUTXOs = ({ checking, onRefresh, utxos, utxoToMessage, redeemedUTXOs, redeeming, onRedeem, renVMMessages, signatures, redeemingOnEthereum, checkingResponse, messageToUtxos, redeemOnEthereum, checkForResponse, resubmitting }: Props) => {
+export const ShowUTXOs = ({ checking, onRefresh, utxos, utxoToMessage, redeemedUTXOs, redeeming, onRedeem, renVMMessages, signatures, redeemingOnEthereum, checkingResponse, messageToUtxos, redeemOnEthereum, checkForResponse }: Props) => {
     const unredeemed = utxos.filter(utxo => !utxoToMessage.has(utxo.utxo.txHash));
-    const redeemable = unredeemed.first(undefined);
+    let redeemable = Map<Currency, string>();
+    for (const currency of CurrencyList) {
+        const first = unredeemed.filter(utxo => utxo.currency === currency).first(undefined);
+        if (first) {
+            redeemable = redeemable.set(currency, first.utxo.txHash)
+        }
+    }
     return <div className="block deposits">
         <div className="deposits--title">
             <h3>Deposits</h3>
             <button disabled={checking} className="button--white" onClick={onRefresh}>{checking ? <div className="checking"><Loading /></div> : <>Refresh</>}</button>
         </div>
         {unredeemed.map((utxo) => {
-            const last = redeemable ? redeemable.utxo.txHash === utxo.utxo.txHash : false;
+            const last = redeemable.contains(utxo.utxo.txHash);
             const redeemingUTXO = redeemedUTXOs.contains(utxo.utxo.txHash);
-            return <ShowUTXO last={last} simple={true} key={utxo.utxo.txHash} utxo={utxo} redeemingUTXO={redeemingUTXO} redeeming={redeeming} onRedeem={onRedeem} />;
+            return <ShowUTXO last={last} simple={true} key={utxo.utxo.txHash} utxo={utxo} redeemingUTXO={redeemingUTXO} redeeming={redeeming.get(utxo.utxo.txHash) || false} onRedeem={onRedeem} />;
         })}
         {renVMMessages.filter((_, message) => !signatures.has(message)).map((renVMMessage, time) => {
             // const first = renVMMessage.first(undefined);
-            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} resubmitting={resubmitting} />;
+            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />;
         }).toList()}
         {renVMMessages.filter((_, message) => signatures.has(message)).map((renVMMessage, time) => {
             // const first = renVMMessage.first(undefined);
-            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} resubmitting={resubmitting} />;
+            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />;
         }).toList()}
     </div>;
-}
+};

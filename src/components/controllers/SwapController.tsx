@@ -58,12 +58,11 @@ const SwapControllerClass = (props: Props) => {
     let [depositAddresses, setDepositAddresses] = React.useState<DepositAddresses | undefined>(undefined);
     const [checking, setChecking] = React.useState(false);
     const [utxos, setUTXOs] = React.useState<List<UTXO>>(List());
-    const [redeeming, setRedeeming] = React.useState(false);
+    // tslint:disable-next-line: prefer-const
+    let [redeeming, setRedeeming] = React.useState(Map<string, boolean>());
     const [blur, setBlur] = React.useState(false);
     // tslint:disable-next-line: prefer-const
     let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
-    // tslint:disable-next-line: prefer-const
-    let [resubmitting, setResubmitting] = React.useState(Map<string, boolean>());
     const [redeemingOnEthereum, setRedeemingOnEthereum] = React.useState(Map<string, boolean>());
 
     const onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -157,7 +156,8 @@ const SwapControllerClass = (props: Props) => {
     }
 
     const onRedeem = async (utxo: UTXO) => {
-        setRedeeming(true);
+        redeeming = redeeming.set(utxo.utxo.txHash, true);
+        setRedeeming(redeeming);
         if (!ethereumAddress) {
             return;
         }
@@ -168,15 +168,15 @@ const SwapControllerClass = (props: Props) => {
             const messages = await darknodeGroup.submitDeposits(ethereumAddress, utxo);
             props.actions.addToRenVMMessages({ utxo: id, messages });
             props.actions.addToMessageToUtxos({ message: id, utxos: List([utxo]) });
+            props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
+            props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
         } catch (error) {
             console.error(error);
-            setRedeeming(false);
             setError(`${error && error.toString ? error.toString() : error}`);
-            return;
         }
-        props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
-        props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
-        setRedeeming(false);
+
+        redeeming = redeeming.remove(utxo.utxo.txHash);
+        setRedeeming(redeeming);
     };
 
     const getMetaMaskAddress = async () => {
@@ -210,7 +210,7 @@ const SwapControllerClass = (props: Props) => {
         {depositAddresses ?
             <div className={`swap--bottom ${blur ? "blur" : ""}`}>
                 <CurrenciesBlock depositAddresses={depositAddresses} />
-                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} resubmitting={resubmitting} />
+                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />
             </div> : null}
     </div >;
 };
