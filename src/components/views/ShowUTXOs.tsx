@@ -7,6 +7,7 @@ import { UTXO } from "../../lib/blockchain/depositAddresses";
 import { MultiAddress } from "../../lib/types/types";
 import { ShowUTXO } from "./ShowUTXO";
 
+// TODO: Refactor props
 interface Props {
     checking: boolean;
     onRefresh: () => Promise<void>;

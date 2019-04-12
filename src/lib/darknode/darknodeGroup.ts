@@ -6,6 +6,7 @@ import {
     HealthResponse,
     ReceiveMessageRequest,
     ReceiveMessageResponse,
+    RenVMReceiveMessageResponse,
     SendMessageRequest,
     SendMessageResponse,
 } from "./types";
@@ -69,8 +70,12 @@ export class DarknodeGroup {
                     throw new Error("No darknode provided");
                 }
                 const peers = await result.getPeers();
-                this.addDarknodes(peers.result.peers.map(NewMultiAddress));
-                success = true;
+                if (peers.result) {
+                    this.addDarknodes(peers.result.peers.map(NewMultiAddress));
+                    success = true;
+                } else if (peers.error) {
+                    throw peers.error;
+                }
             } catch (error) {
                 lastError = error;
             }
@@ -159,7 +164,7 @@ export class WarpGateGroup extends DarknodeGroup {
         return results.filter(x => x !== null).map((result) => ({
             // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
             multiAddress: result!.multiAddress,
-            messageID: result!.result.result.messageID,
+            messageID: result!.result.result!.messageID,
             // tslint:enable: no-non-null-assertion no-unnecessary-type-assertion
         })).toList();
     }
@@ -169,14 +174,15 @@ export class WarpGateGroup extends DarknodeGroup {
             const node = this.darknodes.get(multiAddressToID(multiAddress).id);
             if (node) {
                 try {
-                    const signature = await node.receiveMessage({ messageID });
+                    const signature = await node.receiveMessage({ messageID }) as RenVMReceiveMessageResponse;
                     // Error:
                     // { "jsonrpc": "2.0", "version": "0.1", "error": { "code": -32603, "message": "result not available", "data": null }, "id": null }
                     // Success:
                     // (TODO)
                     if (signature.result) {
-                        console.log(signature.result);
-                        return signature.result.payload.args;
+                        return signature.result.result[0].value;
+                    } else if (signature.error) {
+                        throw signature.error;
                     }
                 } catch (error) {
                     console.error(error);

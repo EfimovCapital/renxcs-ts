@@ -1,9 +1,16 @@
 
-export interface Param {
+interface PrivateParam {
+    private: true;
     index: number;
-    private: boolean;
     value: string;
 }
+
+interface PublicParam {
+    private: false;
+    value: string;
+}
+
+export type Param = PrivateParam | PublicParam;
 
 export interface Payload {
     method: string;
@@ -11,7 +18,7 @@ export interface Payload {
     args: any; // Param[];
 }
 
-// Requests
+/// Requests ///////////////////////////////////////////////////////////////////
 
 export interface AddressesRequest {
     darknodeIDs: string[];
@@ -28,64 +35,63 @@ export interface ReceiveMessageRequest {
     messageID: string;
 }
 
-// Responses
+/// Responses //////////////////////////////////////////////////////////////////
 
-export interface Response {
+export type JSONRPCResponse<T> = {
     jsonrpc: string;
     version: string;
+    result: T;
+    error: undefined;
     id: number;
-}
+} | {
+    jsonrpc: string;
+    version: string;
+    result: undefined;
+    // tslint:disable-next-line: no-any
+    error: any;
+    id: number;
+};
 
-export interface HealthResponse extends Response {
-    result: {
-        version: string;
-        address: string;
-        cpus: {
-            cores: number;
-            clockRate: number;
-            cacheSize: number;
-            modelName: string;
-        };
-        ram: string;
-        disk: string;
-        location: string;
+export type HealthResponse = JSONRPCResponse<{
+    version: string;
+    address: string;
+    cpus: {
+        cores: number;
+        clockRate: number;
+        cacheSize: number;
+        modelName: string;
     };
-}
+    ram: string;
+    disk: string;
+    location: string;
+}>;
 
-export interface PeersResponse extends Response {
-    result: {
-        peers: string[];
-    };
-}
+export type PeersResponse = JSONRPCResponse<{
+    peers: string[];
+}>;
 
-export interface NumPeersResponse extends Response {
-    result: {
-        numPeers: number;
-    };
-}
+export type NumPeersResponse = JSONRPCResponse<{
+    numPeers: number;
+}>;
 
-export interface EpochResponse extends Response {
-    result: {
-        epochHash: string;
-        shardHashes: string[];
-    };
-}
+export type EpochResponse = JSONRPCResponse<{
+    epochHash: string;
+    shardHashes: string[];
+}>;
 
-export interface AddressesResponse extends Response {
-    result: {
-        addresses: string[];
-    };
-}
+export type AddressesResponse = JSONRPCResponse<{
+    addresses: string[];
+}>;
 
-export interface SendMessageResponse extends Response {
-    result: {
-        messageID: string;
-        ok: boolean;
-    };
-}
+export type SendMessageResponse = JSONRPCResponse<{
+    messageID: string;
+    ok: boolean;
+}>;
 
-export interface ReceiveMessageResponse extends Response {
-    result: {
-        payload: Payload;
-    };
-}
+export type ReceiveMessageResponse = JSONRPCResponse<{
+    result: Param[];
+}>;
+
+export type RenVMReceiveMessageResponse = JSONRPCResponse<{
+    result: [PublicParam, PublicParam, PublicParam];
+}>;

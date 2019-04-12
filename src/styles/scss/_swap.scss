@@ -212,11 +212,16 @@
     }
 
     .currencies {
+        @extend .hide-scrollbar;
+
+
         display: flex;
         align-items: flex-start;
         width: calc(100% + 20px);
         margin-left: -10px;
         margin-right: -10px;
+        overflow-x: scroll;
+
     }
 
     .currency {
@@ -231,10 +236,11 @@
         align-items: center;
         background-size: 200% auto;
         transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
-        min-width: 0;
+        min-width: 150px;
 
         &.active {
             width: 100%;
+            min-width: 550px;
         }
 
         svg {

@@ -29,6 +29,7 @@ const showCircle = (percentage: number) => {
     />;
 };
 
+// TODO: Refactor props
 export type Props = {
     simple: true,
     utxo: UTXO,
