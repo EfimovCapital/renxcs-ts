@@ -30,7 +30,7 @@ export const ReceiveAddress = ({ onGenerateAddress, ethereumAddress, onChange, g
             <div className="swap--eth--input">
                 <input type="text" value={ethereumAddress} onChange={onChange} placeholder="Enter Ethereum address for receiving" />
                 <button type="button" className="metamask-logo" onClick={onGetMM}><MetaMask /></button>
-                <button ref={ref} type="submit" className="button--white swap--eth--submit" disabled={!ethereumAddress}>Go</button>
+                <button ref={ref} type="submit" className="button--white" disabled={!ethereumAddress}>Go</button>
             </div>
         </form>
     </div>;
