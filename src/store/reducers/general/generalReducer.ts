@@ -16,7 +16,7 @@ export const generalReducer = (state: GeneralData = new GeneralData(), action: G
             return state.set("ethereumAddress", action.payload);
 
         case getType(generalActions.setEvents):
-            return state.set("events", action.payload);
+            return state.set("allEvents", state.allEvents.set(action.payload.ethereumAddress, action.payload.events));
 
         default:
             return state;

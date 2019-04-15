@@ -29,12 +29,11 @@ const showCircle = (percentage: number, color?: string) => {
     />;
 };
 
-// TODO: Refactor props
 export interface Props {
     event: XCSEvent;
-    last: boolean;
     redeeming: boolean;
     checkingResponse: Map<string, boolean>;
+    oldestDeposit: boolean;
 
     onRedeem: (deposit: Deposit) => void;
     checkForResponse: (id: string) => Promise<void>;
@@ -43,7 +42,7 @@ export interface Props {
 export const ShowUTXO = (props: Props) => {
     if (props.event.type === EventType.Deposit) {
         const event = props.event as Deposit;
-        const { last, redeeming, onRedeem } = props;
+        const { oldestDeposit, redeeming, onRedeem } = props;
         const onClick = () => {
             onRedeem(event);
         };
@@ -61,7 +60,7 @@ export const ShowUTXO = (props: Props) => {
                 </a>
             </div>
             <div className="utxo--buttons">
-                {last ? <button disabled={redeeming} className="button--blue" onClick={onClick}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
+                {oldestDeposit ? <button disabled={redeeming} className="button--blue" onClick={onClick}>{redeeming ? <Loading alt={true} /> : <>Send to darknodes</>}</button> : null}
             </div>
         </div>;
     } else if (props.event.type === EventType.Mint) {

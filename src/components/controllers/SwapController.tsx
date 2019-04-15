@@ -2,7 +2,7 @@ import * as React from "react";
 
 import Web3 from "web3";
 
-import { List, Map } from "immutable";
+import { List, Map, OrderedMap } from "immutable";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
@@ -11,7 +11,7 @@ import { BitcoinUTXO } from "../../lib/blockchain/btc/btc";
 import { ZcashUTXO } from "../../lib/blockchain/btc/zec";
 import { Currency, DepositAddresses, UTXO } from "../../lib/blockchain/depositAddresses";
 import { setEthereumAddress, setEvents } from "../../store/actions/general/generalActions";
-import { ApplicationData, Burn, Deposit, EventType, Mint } from "../../store/types/general";
+import { ApplicationData, Burn, Deposit, EventType, Mint, XCSEvent } from "../../store/types/general";
 import { CurrenciesBlock } from "../views/CurrenciesBlock";
 import { ReceiveAddress } from "../views/ReceiveAddress";
 import { ShowUTXOs } from "../views/ShowUTXOs";
@@ -65,7 +65,7 @@ const SwapControllerClass = (props: Props) => {
     let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
     // tslint:enable: prefer-const
 
-    const onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const element = (event.target as HTMLInputElement);
         const value = element.value;
         props.actions.setEthereumAddress(value);
@@ -85,7 +85,9 @@ const SwapControllerClass = (props: Props) => {
         try {
             const signature = await darknodeGroup.checkForResponse(mintEvent);
             events = events.set(id, mintEvent.set("mintTransaction", signature));
-            props.actions.setEvents(events);
+            if (ethereumAddress) {
+                props.actions.setEvents({ ethereumAddress, events });
+            }
         } catch (error) {
             console.error(error);
         }
@@ -117,7 +119,9 @@ const SwapControllerClass = (props: Props) => {
                     utxo: List([utxo.utxo]),
                     currency: utxo.currency,
                 }));
-                props.actions.setEvents(events);
+                if (ethereumAddress) {
+                    props.actions.setEvents({ ethereumAddress, events });
+                }
             }
         });
 
@@ -135,10 +139,7 @@ const SwapControllerClass = (props: Props) => {
     const onRefresh = () => onSubmit();
 
     // tslint:disable-next-line: no-any
-    const onGenerateAddress = (e?: any) => {
-        if (e && e.preventDefault) {
-            e.preventDefault();
-        }
+    const onGenerateAddress = () => {
         setError(undefined);
 
         if (ethereumAddress) {
@@ -193,7 +194,9 @@ const SwapControllerClass = (props: Props) => {
                 messageID: messages.first({ messageID: "" }).messageID,
                 messageIDs: messages.map(x => x.messageID),
             }));
-            props.actions.setEvents(events);
+            if (ethereumAddress) {
+                props.actions.setEvents({ ethereumAddress, events });
+            }
         } catch (error) {
             console.error(error);
             setError(`${error && error.toString ? error.toString() : error}`);
@@ -233,7 +236,9 @@ const SwapControllerClass = (props: Props) => {
                     messageID: "",
                     burnTransaction: undefined,
                 }));
-                props.actions.setEvents(events);
+                if (ethereumAddress) {
+                    props.actions.setEvents({ ethereumAddress, events });
+                }
             } catch (error) {
                 console.error(error);
                 setError(`${error && error.toString ? error.toString() : error}`);
@@ -256,7 +261,7 @@ const mapStateToProps = (state: ApplicationData) => ({
     store: {
         ethereumAddress: state.general.ethereumAddress,
         darknodeGroup: state.general.darknodeGroup,
-        events: state.general.events,
+        events: state.general.allEvents.get(state.general.ethereumAddress || "") || OrderedMap<string, XCSEvent>(),
     }
 });
 

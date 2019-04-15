@@ -309,6 +309,10 @@
         border-top-left-radius: 0px;
         border-bottom-left-radius: 0px;
         font-weight: 900;
+
+        &:focus {
+            border: 2px solid $blue-bright;
+        }
     }
 
     .metamask-logo {

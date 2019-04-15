@@ -8,4 +8,4 @@ import { XCSEvent } from "../../types/general";
 export const setQuoteCurrency = createStandardAction("setQuoteCurrency")<Currency>();
 export const setEthereumAddress = createStandardAction("setEthereumAddress")<string | undefined>();
 
-export const setEvents = createStandardAction("addToRedeemedUTXOs")<OrderedMap<string, XCSEvent>>();
+export const setEvents = createStandardAction("addToRedeemedUTXOs")<{ ethereumAddress: string, events: OrderedMap<string, XCSEvent> }>();

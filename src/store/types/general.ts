@@ -61,17 +61,10 @@ export class Burn extends Record({
 
 export type XCSEvent = Deposit | Mint | Burn;
 
-const syncedGeneralData = new Map()
-    .set("ethereumAddress", "string")
-    .set("advanced", "boolean")
-    .set("theme", "string")
-    .set("advancedTheme", "string")
-    .set("events", "OrderedMap<string, object>")
-    .set("quoteCurrency", "string");
-export class GeneralData extends Record({
+const GeneralDataInner = {
     ethereumAddress: "0x5Ea5F67cC958023F2da2ea92231d358F2a3BbA47" as string | undefined,
 
-    events: OrderedMap<string, XCSEvent>(),
+    allEvents: ImmutableMap<string, OrderedMap<string, XCSEvent>>(),
 
     darknodeGroup: new WarpGateGroup(bootstrapNodes),
 
@@ -83,7 +76,16 @@ export class GeneralData extends Record({
     // address: null as string | null,
     url: null as string | null,
     quoteCurrency: Currency.USD,
-}) implements Serializable<GeneralData> {
+};
+
+const syncedGeneralData = new Map<keyof typeof GeneralDataInner, string>()
+    .set("ethereumAddress", "string")
+    .set("advanced", "boolean")
+    .set("theme", "string")
+    .set("advancedTheme", "string")
+    .set("allEvents", "OrderedMap<string, object>")
+    .set("quoteCurrency", "string");
+export class GeneralData extends Record(GeneralDataInner) implements Serializable<GeneralData> {
 
     public serialize(): string {
         const obj = {};
@@ -100,34 +102,47 @@ export class GeneralData extends Record({
             const data = JSON.parse(str);
             for (const key of Array.from(syncedGeneralData.keys())) {
                 try {
-                    const dataKey = data[key];
-                    if (key === "events") {
-                        let nextDataKey = OrderedMap<string, XCSEvent>();
-                        for (const childKey of Object.keys(dataKey)) {
-                            const child = dataKey[childKey];
-                            let event;
-                            if (child.type === EventType.Deposit) {
-                                console.log(child);
-                                event = new Deposit({ ...child, utxo: List(child.utxo) });
-                                console.log(event);
-                            } else if (child.type === EventType.Burn) {
-                                console.log(child);
-                                event = new Burn(child);
-                                console.log(event);
-                            } else if (child.type === EventType.Mint) {
-                                console.log(child);
-                                event = new Mint({ ...child, utxos: List(child.utxos) });
-                                console.log(event);
-                            } else {
-                                throw new Error("Unknown XCSEvent type");
-                            }
-                            nextDataKey = nextDataKey.set(event.id, event);
+                    const expectedType = syncedGeneralData.get(key);
+                    if (key === "allEvents") {
+                        const allEvents = data[key];
+                        if (!allEvents) {
+                            continue;
                         }
-                        next = next.set(key, nextDataKey);
-                    } else {
+                        let nextAllEvents = ImmutableMap<string, OrderedMap<string, XCSEvent>>();
+                        for (const address of Object.keys(allEvents)) {
+                            const events = allEvents[address];
+                            if (!events) {
+                                continue;
+                            }
+                            let nextEvents = OrderedMap<string, XCSEvent>();
+                            for (const childKey of Object.keys(events)) {
+                                const child = events[childKey];
+                                let event;
+                                if (child.type === EventType.Deposit) {
+                                    console.log(child);
+                                    event = new Deposit({ ...child, utxo: List(child.utxo) });
+                                    console.log(event);
+                                } else if (child.type === EventType.Burn) {
+                                    console.log(child);
+                                    event = new Burn(child);
+                                    console.log(event);
+                                } else if (child.type === EventType.Mint) {
+                                    console.log(child);
+                                    event = new Mint({ ...child, utxos: List(child.utxos) });
+                                    console.log(event);
+                                } else {
+                                    throw new Error("Unknown XCSEvent type");
+                                }
+                                nextEvents = nextEvents.set(event.id, event);
+                            }
+                            nextAllEvents = nextAllEvents.set(address, nextEvents);
+                        }
+                        next = next.set(key, nextAllEvents);
+                    } else if (expectedType) {
                         next = next.set(
                             key,
-                            validateType(syncedGeneralData.get(key), dataKey)
+                            // tslint:disable-next-line: no-any
+                            validateType(expectedType, data[key]) as any
                         );
                     }
                 } catch (error) {

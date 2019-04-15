@@ -33,7 +33,7 @@ const generalTransform = createTransform<GeneralData, string>(
 
 export const persistConfig: PersistConfig = {
     storage,
-    key: "ren",
+    key: "renxcs",
     whitelist: ["general"] as Array<keyof ApplicationData>,
     transforms: [generalTransform],
 };

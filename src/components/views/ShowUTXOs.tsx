@@ -3,7 +3,8 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { Map, OrderedMap } from "immutable";
 
-import { Deposit, XCSEvent } from "../../store/types/general";
+import { Currency, CurrencyList } from "../../lib/blockchain/depositAddresses";
+import { Deposit, EventType, XCSEvent } from "../../store/types/general";
 import { ShowUTXO } from "./ShowUTXO";
 
 // TODO: Refactor props
@@ -18,13 +19,13 @@ interface Props {
 }
 
 export const ShowUTXOs = ({ checking, onRefresh, events, redeeming, onRedeem, checkingResponse, checkForResponse }: Props) => {
-    // let redeemable = Map<Currency, string>();
-    // for (const currency of CurrencyList) {
-    //     const first = unredeemed.filter(utxo => utxo.currency === currency).first(undefined);
-    //     if (first) {
-    //         redeemable = redeemable.set(currency, first.utxo.txHash)
-    //     }
-    // }
+    let redeemable = Map<Currency, string>();
+    for (const currency of CurrencyList) {
+        const first = events.filter(utxo => utxo.type === EventType.Deposit && (utxo as Deposit).currency === currency).first(undefined);
+        if (first) {
+            redeemable = redeemable.set(currency, first.id);
+        }
+    }
     return <div className="block deposits">
         <div className="deposits--title">
             <h3>History (all addresses)</h3>
@@ -33,7 +34,7 @@ export const ShowUTXOs = ({ checking, onRefresh, events, redeeming, onRedeem, ch
 
         {events.reverse().map(event => {
             // const last = redeemable.contains(utxo.utxo.txHash);
-            return <ShowUTXO event={event} key={event.id} last={true} redeeming={redeeming.get(event.id) || false} onRedeem={onRedeem} checkingResponse={checkingResponse} checkForResponse={checkForResponse} />;
+            return <ShowUTXO event={event} key={event.id} oldestDeposit={redeemable.contains(event.id)} redeeming={redeeming.get(event.id) || false} onRedeem={onRedeem} checkingResponse={checkingResponse} checkForResponse={checkForResponse} />;
         }).toList()}
     </div>;
 };

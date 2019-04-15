@@ -157,8 +157,9 @@ export class DepositAddresses {
             currency === Currency.ZEC ? zecAddressToHex(to) :
                 to;
 
-        console.log(toHex);
+        console.log(`toHex: ${toHex}`);
 
+        console.log(`receiveAddress: ${this.receiveAddress}`);
         await contract.methods.burn(toHex, new BigNumber(amount).multipliedBy(10 ** CurrencyDecimals(currency)).toFixed()).send({ from: this.receiveAddress });
     }
 }
