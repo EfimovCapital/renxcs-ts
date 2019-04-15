@@ -168,8 +168,6 @@ const SwapControllerClass = (props: Props) => {
     }
 
     const onRedeem = async (deposit: Deposit) => {
-        console.log("onRedeem");
-
         const id = deposit.id;
 
         redeeming = redeeming.set(id, true);
@@ -224,9 +222,8 @@ const SwapControllerClass = (props: Props) => {
             try {
                 const to = prompt(`Enter recipient ${currency.toUpperCase()} address`);
                 if (!to) {
-                    throw new Error(`Address must not be empty`);
+                    return;
                 }
-                await depositAddresses.burn(currency, to, amount);
                 const id: string = Date();
                 events = events.set(id, new Burn({
                     id,
@@ -238,6 +235,14 @@ const SwapControllerClass = (props: Props) => {
                 }));
                 if (ethereumAddress) {
                     props.actions.setEvents({ ethereumAddress, events });
+                }
+                try {
+                    await depositAddresses.burn(currency, to, amount);
+                } catch (error) {
+                    events = events.delete(id);
+                    if (ethereumAddress) {
+                        props.actions.setEvents({ ethereumAddress, events });
+                    }
                 }
             } catch (error) {
                 console.error(error);

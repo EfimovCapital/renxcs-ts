@@ -119,17 +119,11 @@ export class GeneralData extends Record(GeneralDataInner) implements Serializabl
                                 const child = events[childKey];
                                 let event;
                                 if (child.type === EventType.Deposit) {
-                                    console.log(child);
                                     event = new Deposit({ ...child, utxo: List(child.utxo) });
-                                    console.log(event);
                                 } else if (child.type === EventType.Burn) {
-                                    console.log(child);
                                     event = new Burn(child);
-                                    console.log(event);
                                 } else if (child.type === EventType.Mint) {
-                                    console.log(child);
                                     event = new Mint({ ...child, utxos: List(child.utxos) });
-                                    console.log(event);
                                 } else {
                                     throw new Error("Unknown XCSEvent type");
                                 }
