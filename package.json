@@ -17,6 +17,7 @@
     "bignumber.js": "^8.1.1",
     "bitcore-lib": "^8.1.1",
     "bitcore-lib-zcash": "zcash-hackworks/bitcore-lib-zcash",
+    "bs58": "^4.0.1",
     "history": "^4.9.0",
     "immutable": "^4.0.0-rc.12",
     "react": "^16.8.6",

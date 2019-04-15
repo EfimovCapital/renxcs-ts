@@ -1,60 +1,39 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { List, Map } from "immutable";
+import { Map, OrderedMap } from "immutable";
 
-import { UTXO, CurrencyList, Currency } from "../../lib/blockchain/depositAddresses";
-import { MultiAddress } from "../../lib/types/types";
+import { Deposit, XCSEvent } from "../../store/types/general";
 import { ShowUTXO } from "./ShowUTXO";
 
 // TODO: Refactor props
 interface Props {
     checking: boolean;
-    onRefresh: () => Promise<void>;
-    utxos: List<UTXO>;
-    utxoToMessage: Map<string, string>;
-    // tslint:disable-next-line: no-any
-    redeemedUTXOs: any;
     redeeming: Map<string, boolean>;
-    onRedeem: (utxo: UTXO) => Promise<void>;
-    renVMMessages: Map<string, List<{
-        messageID: string;
-        multiAddress: MultiAddress;
-    }>>;
-    signatures: Map<string, string>;
-    redeemingOnEthereum: Map<string, boolean>;
+    events: OrderedMap<string, XCSEvent>;
     checkingResponse: Map<string, boolean>;
-    messageToUtxos: Map<string, List<UTXO>>;
-    redeemOnEthereum: (id: string) => Promise<void>;
+    onRefresh: () => Promise<void>;
+    onRedeem: (deposit: Deposit) => Promise<void>;
     checkForResponse: (id: string) => Promise<void>;
 }
 
-export const ShowUTXOs = ({ checking, onRefresh, utxos, utxoToMessage, redeemedUTXOs, redeeming, onRedeem, renVMMessages, signatures, redeemingOnEthereum, checkingResponse, messageToUtxos, redeemOnEthereum, checkForResponse }: Props) => {
-    const unredeemed = utxos.filter(utxo => !utxoToMessage.has(utxo.utxo.txHash));
-    let redeemable = Map<Currency, string>();
-    for (const currency of CurrencyList) {
-        const first = unredeemed.filter(utxo => utxo.currency === currency).first(undefined);
-        if (first) {
-            redeemable = redeemable.set(currency, first.utxo.txHash)
-        }
-    }
+export const ShowUTXOs = ({ checking, onRefresh, events, redeeming, onRedeem, checkingResponse, checkForResponse }: Props) => {
+    // let redeemable = Map<Currency, string>();
+    // for (const currency of CurrencyList) {
+    //     const first = unredeemed.filter(utxo => utxo.currency === currency).first(undefined);
+    //     if (first) {
+    //         redeemable = redeemable.set(currency, first.utxo.txHash)
+    //     }
+    // }
     return <div className="block deposits">
         <div className="deposits--title">
-            <h3>Deposits</h3>
+            <h3>History (all addresses)</h3>
             <button disabled={checking} className="button--white" onClick={onRefresh}>{checking ? <div className="checking"><Loading /></div> : <>Refresh</>}</button>
         </div>
-        {unredeemed.map((utxo) => {
-            const last = redeemable.contains(utxo.utxo.txHash);
-            const redeemingUTXO = redeemedUTXOs.contains(utxo.utxo.txHash);
-            return <ShowUTXO last={last} simple={true} key={utxo.utxo.txHash} utxo={utxo} redeemingUTXO={redeemingUTXO} redeeming={redeeming.get(utxo.utxo.txHash) || false} onRedeem={onRedeem} />;
-        })}
-        {renVMMessages.filter((_, message) => !signatures.has(message)).map((renVMMessage, time) => {
-            // const first = renVMMessage.first(undefined);
-            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />;
-        }).toList()}
-        {renVMMessages.filter((_, message) => signatures.has(message)).map((renVMMessage, time) => {
-            // const first = renVMMessage.first(undefined);
-            return <ShowUTXO key={time} simple={false} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} time={time} renVMMessage={renVMMessage} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />;
+
+        {events.reverse().map(event => {
+            // const last = redeemable.contains(utxo.utxo.txHash);
+            return <ShowUTXO event={event} key={event.id} last={true} redeeming={redeeming.get(event.id) || false} onRedeem={onRedeem} checkingResponse={checkingResponse} checkForResponse={checkForResponse} />;
         }).toList()}
     </div>;
 };

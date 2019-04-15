@@ -7,9 +7,10 @@ interface Props {
     currency: Currency;
     index: number;
     depositAddresses: DepositAddresses;
+    burn: (currency: Currency, amount: string) => Promise<void>;
 }
 
-export const ShowCurrency = ({ currency, index, depositAddresses }: Props): JSX.Element => {
+export const ShowCurrency = ({ currency, index, depositAddresses, burn }: Props): JSX.Element => {
     const [expanded, setExpanded] = React.useState(false);
     const [error, setError] = React.useState<string | undefined>(undefined);
     // tslint:disable-next-line: prefer-const
@@ -42,19 +43,9 @@ export const ShowCurrency = ({ currency, index, depositAddresses }: Props): JSX.
         }
     };
 
-    const burn = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleBurn = async (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        if (balance && balance !== "0") {
-            try {
-                const to = prompt(`Enter recipient ${currency.toUpperCase()} address`);
-                if (!to) {
-                    throw new Error(`Address must not be empty`);
-                }
-                await depositAddresses.burn(currency, to, balance);
-            } catch (error) {
-                setError(`${error && error.toString ? error.toString() : error}`);
-            }
-        }
+        await burn(currency, balance || "0");
     };
 
     return <div ref={ref} className={`currency ${currency} ${expanded ? "active" : ""}`} data-id={currency} data-index={index} onMouseDown={showDeposit} role="button" key={currency}>
@@ -62,7 +53,7 @@ export const ShowCurrency = ({ currency, index, depositAddresses }: Props): JSX.
         {expanded ?
             <div className={`deposit-address ${currency}`}>
                 <div>
-                    <span>Balance: {balance} {currency.toUpperCase()}{balance && balance !== "0" ? <>{" "}(<a role="button" href="null" onClick={burn}>Burn</a>)</> : null}</span><br />
+                    <span>Balance: {balance} {currency.toUpperCase()}{balance && balance !== "0" ? <>{" "}(<a role="button" href="null" onClick={handleBurn}>Burn</a>)</> : null}</span><br />
                     {error ? <><span className="red">{error}</span><br /></> : null}
                     <span>Deposit to <b>{depositAddresses.depositAddresses.get(currency)}</b></span>
                 </div>

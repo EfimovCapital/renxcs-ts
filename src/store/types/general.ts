@@ -1,9 +1,10 @@
 import { Currency, Record } from "@renex/react-components";
-import { List, Map as ImmutableMap, OrderedMap, Set } from "immutable";
+import { List, Map as ImmutableMap, OrderedMap } from "immutable";
 
-import { UTXO } from "../../lib/blockchain/depositAddresses";
+import { BitcoinUTXO } from "../../lib/blockchain/btc/btc";
+import { ZcashUTXO } from "../../lib/blockchain/btc/zec";
+import { Currency as XCSCurrency, UTXO } from "../../lib/blockchain/depositAddresses";
 import { bootstrapNodes, WarpGateGroup } from "../../lib/darknode/darknodeGroup";
-import { MultiAddress } from "../../lib/types/types";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/util/errors";
 import { validateType } from "../../lib/util/persist";
 
@@ -22,24 +23,55 @@ export enum UITheme {
     Dark = "theme-dark", // dark theme's CSS class
 }
 
+export enum EventType {
+    Deposit = "deposit",
+    Mint = "mint",
+    Burn = "burn",
+}
+
+export class Deposit extends Record({
+    id: "",
+    isXCSEvent: true,
+    type: EventType.Deposit,
+    // tslint:disable-next-line: no-object-literal-type-assertion
+    utxo: List<BitcoinUTXO | ZcashUTXO>(),
+    currency: XCSCurrency.BTC,
+}) { }
+
+export class Mint extends Record({
+    id: "",
+    isXCSEvent: true,
+    type: EventType.Mint,
+    utxos: List<UTXO>(),
+    mintTransaction: undefined as string | undefined,
+    messageID: "",
+    messageIDs: List<string>(),
+}) { }
+
+export class Burn extends Record({
+    id: "",
+    isXCSEvent: true,
+    type: EventType.Burn,
+    currency: XCSCurrency.BTC,
+    amount: "0",
+    to: "",
+    messageID: "",
+    burnTransaction: undefined as string | undefined,
+}) { }
+
+export type XCSEvent = Deposit | Mint | Burn;
+
 const syncedGeneralData = new Map()
     .set("ethereumAddress", "string")
     .set("advanced", "boolean")
     .set("theme", "string")
     .set("advancedTheme", "string")
-    .set("redeemedUTXOs", "Set<string>")
-    .set("renVMMessages", "Map<string, List<object>>")
-    .set("utxoToMessage", "Map<string, string>")
-    .set("messageToUtxos", "Map<string, List<object>>")
-    .set("signatures", "Map<string, string>")
+    .set("events", "OrderedMap<string, object>")
     .set("quoteCurrency", "string");
 export class GeneralData extends Record({
     ethereumAddress: "0x5Ea5F67cC958023F2da2ea92231d358F2a3BbA47" as string | undefined,
-    redeemedUTXOs: Set<string>(),
-    renVMMessages: ImmutableMap<string, List<{ messageID: string, multiAddress: MultiAddress }>>(),
-    signatures: ImmutableMap<string, string>(),
-    utxoToMessage: ImmutableMap<string, string>(),
-    messageToUtxos: ImmutableMap<string, List<UTXO>>(),
+
+    events: OrderedMap<string, XCSEvent>(),
 
     darknodeGroup: new WarpGateGroup(bootstrapNodes),
 
@@ -68,10 +100,36 @@ export class GeneralData extends Record({
             const data = JSON.parse(str);
             for (const key of Array.from(syncedGeneralData.keys())) {
                 try {
-                    next = next.set(
-                        key,
-                        validateType(syncedGeneralData.get(key), data[key])
-                    );
+                    const dataKey = data[key];
+                    if (key === "events") {
+                        let nextDataKey = OrderedMap<string, XCSEvent>();
+                        for (const childKey of Object.keys(dataKey)) {
+                            const child = dataKey[childKey];
+                            let event;
+                            if (child.type === EventType.Deposit) {
+                                console.log(child);
+                                event = new Deposit({ ...child, utxo: List(child.utxo) });
+                                console.log(event);
+                            } else if (child.type === EventType.Burn) {
+                                console.log(child);
+                                event = new Burn(child);
+                                console.log(event);
+                            } else if (child.type === EventType.Mint) {
+                                console.log(child);
+                                event = new Mint({ ...child, utxos: List(child.utxos) });
+                                console.log(event);
+                            } else {
+                                throw new Error("Unknown XCSEvent type");
+                            }
+                            nextDataKey = nextDataKey.set(event.id, event);
+                        }
+                        next = next.set(key, nextDataKey);
+                    } else {
+                        next = next.set(
+                            key,
+                            validateType(syncedGeneralData.get(key), dataKey)
+                        );
+                    }
                 } catch (error) {
                     _captureInteractionException_(error, { description: "Error in GeneralData.deserialize", shownToUser: "No" });
                 }

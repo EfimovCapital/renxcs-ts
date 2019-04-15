@@ -7,9 +7,11 @@ import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { HttpProvider } from "web3-providers";
 
-import { DepositAddresses, UTXO } from "../../lib/blockchain/depositAddresses";
-import { addToMessageToUtxos, addToRedeemedUTXOs, addToRenVMMessages, addToSignatures, addToUtxoToMessage, setEthereumAddress } from "../../store/actions/general/generalActions";
-import { ApplicationData } from "../../store/types/general";
+import { BitcoinUTXO } from "../../lib/blockchain/btc/btc";
+import { ZcashUTXO } from "../../lib/blockchain/btc/zec";
+import { Currency, DepositAddresses, UTXO } from "../../lib/blockchain/depositAddresses";
+import { setEthereumAddress, setEvents } from "../../store/actions/general/generalActions";
+import { ApplicationData, Burn, Deposit, EventType, Mint } from "../../store/types/general";
 import { CurrenciesBlock } from "../views/CurrenciesBlock";
 import { ReceiveAddress } from "../views/ReceiveAddress";
 import { ShowUTXOs } from "../views/ShowUTXOs";
@@ -49,21 +51,19 @@ export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => 
 });
 
 const SwapControllerClass = (props: Props) => {
-    const { store: { ethereumAddress, redeemedUTXOs, darknodeGroup, renVMMessages, signatures, utxoToMessage, messageToUtxos } } = props;
+    const { store: { ethereumAddress, darknodeGroup } } = props;
+    let events = props.store.events;
 
-    const [mounted, setMounted] = React.useState(false);
-
-    const [error, setError] = React.useState<string | undefined>(undefined);
-    // tslint:disable-next-line: prefer-const
-    let [depositAddresses, setDepositAddresses] = React.useState<DepositAddresses | undefined>(undefined);
-    const [checking, setChecking] = React.useState(false);
-    const [utxos, setUTXOs] = React.useState<List<UTXO>>(List());
-    // tslint:disable-next-line: prefer-const
-    let [redeeming, setRedeeming] = React.useState(Map<string, boolean>());
+    // tslint:disable: prefer-const
     const [blur, setBlur] = React.useState(false);
-    // tslint:disable-next-line: prefer-const
+    const [error, setError] = React.useState<string | undefined>(undefined);
+    const [mounted, setMounted] = React.useState(false);
+    const [checking, setChecking] = React.useState(false);
+
+    let [redeeming, setRedeeming] = React.useState(Map<string, boolean>());
+    let [depositAddresses, setDepositAddresses] = React.useState<DepositAddresses | undefined>(undefined);
     let [checkingResponse, setCheckingResponse] = React.useState(Map<string, boolean>());
-    const [redeemingOnEthereum, setRedeemingOnEthereum] = React.useState(Map<string, boolean>());
+    // tslint:enable: prefer-const
 
     const onChange = (event: React.FormEvent<HTMLInputElement>) => {
         const element = (event.target as HTMLInputElement);
@@ -75,15 +75,17 @@ const SwapControllerClass = (props: Props) => {
     };
 
     const checkForResponse = async (id: string) => {
-        const renVMMessage = renVMMessages.get(id);
-        if (!renVMMessage) {
+        const event = events.get(id);
+        if (!event || event.type !== EventType.Mint) {
             return;
         }
+        const mintEvent: Mint = event as Mint;
         checkingResponse = checkingResponse.set(id, true);
         setCheckingResponse(checkingResponse);
         try {
-            const signature = await darknodeGroup.checkForResponse(renVMMessage);
-            props.actions.addToSignatures({ utxo: id, signature });
+            const signature = await darknodeGroup.checkForResponse(mintEvent);
+            events = events.set(id, mintEvent.set("mintTransaction", signature));
+            props.actions.setEvents(events);
         } catch (error) {
             console.error(error);
         }
@@ -101,20 +103,30 @@ const SwapControllerClass = (props: Props) => {
         setChecking(true);
         setError(undefined);
 
-        const promises = renVMMessages.map(async (_, time) => {
-            // tslint:disable-next-line: no-console
-            return checkForResponse(time).catch(console.error);
-        }).valueSeq().toArray();
+        // const promises = renVMMessages.map(async (_, time) => {
+        //     // tslint:disable-next-line: no-console
+        //     return checkForResponse(time).catch(console.error);
+        // }).valueSeq().toArray();
 
         const newUtxos = await depositAddresses.getUTXOs();
-        setUTXOs(newUtxos);
+        newUtxos.map(utxo => {
+            const txHash = utxo.utxo.txHash;
+            if (!events.has(txHash)) {
+                events = events.set(txHash, new Deposit({
+                    id: txHash,
+                    utxo: List([utxo.utxo]),
+                    currency: utxo.currency,
+                }));
+                props.actions.setEvents(events);
+            }
+        });
 
-        try {
-            await Promise.all(promises);
-        } catch (error) {
-            // tslint:disable-next-line: no-console
-            console.error(error);
-        }
+        // try {
+        //     await Promise.all(promises);
+        // } catch (error) {
+        //     // tslint:disable-next-line: no-console
+        //     console.error(error);
+        // }
 
         setChecking(false);
     };
@@ -133,7 +145,6 @@ const SwapControllerClass = (props: Props) => {
             if (depositAddresses && depositAddresses.receiveAddress === ethereumAddress) {
                 // do nothing
             } else {
-                setUTXOs(List());
                 try {
                     depositAddresses = new DepositAddresses(ethereumAddress);
                     setDepositAddresses(depositAddresses);
@@ -155,27 +166,40 @@ const SwapControllerClass = (props: Props) => {
         setMounted(true);
     }
 
-    const onRedeem = async (utxo: UTXO) => {
-        redeeming = redeeming.set(utxo.utxo.txHash, true);
+    const onRedeem = async (deposit: Deposit) => {
+        console.log("onRedeem");
+
+        const id = deposit.id;
+
+        redeeming = redeeming.set(id, true);
         setRedeeming(redeeming);
         if (!ethereumAddress) {
             return;
         }
 
-        const id = utxo.utxo.txHash;
-
         try {
-            const messages = await darknodeGroup.submitDeposits(ethereumAddress, utxo);
-            props.actions.addToRenVMMessages({ utxo: id, messages });
-            props.actions.addToMessageToUtxos({ message: id, utxos: List([utxo]) });
-            props.actions.addToRedeemedUTXOs(utxo.utxo.txHash);
-            props.actions.addToUtxoToMessage({ utxo: utxo.utxo.txHash, message: id });
+            const utxo = deposit.utxo.first(undefined);
+            const utxoWithCurrency: UTXO | undefined = (deposit.currency === Currency.BTC) ? { currency: Currency.BTC, utxo: utxo as BitcoinUTXO } :
+                (deposit.currency === Currency.ZEC) ? { currency: Currency.ZEC, utxo: utxo as ZcashUTXO } : undefined;
+            if (!utxoWithCurrency) {
+                throw new Error(`Unsupported deposit token: ${deposit.currency}`);
+            }
+
+            const messages = await darknodeGroup.submitDeposits(ethereumAddress, utxoWithCurrency);
+            // TODO: Get messageID from majority
+            events = events.set(id, new Mint({
+                id,
+                utxos: List<UTXO>([utxoWithCurrency]),
+                messageID: messages.first({ messageID: "" }).messageID,
+                messageIDs: messages.map(x => x.messageID),
+            }));
+            props.actions.setEvents(events);
         } catch (error) {
             console.error(error);
             setError(`${error && error.toString ? error.toString() : error}`);
         }
 
-        redeeming = redeeming.remove(utxo.utxo.txHash);
+        redeeming = redeeming.remove(id);
         setRedeeming(redeeming);
     };
 
@@ -186,22 +210,35 @@ const SwapControllerClass = (props: Props) => {
             props.actions.setEthereumAddress(addresses[0]);
             setBlur(true);
         } catch (error) {
+            console.error(error);
             setError(`${error && error.toString ? error.toString() : error}`);
         }
     };
 
-    const redeemOnEthereum = async (id: string) => {
-        const signature = signatures.get(id);
-        if (!signature) {
-            return;
+    const burn = async (currency: Currency, amount: string) => {
+        setError(undefined);
+        if (depositAddresses && amount !== "0") {
+            try {
+                const to = prompt(`Enter recipient ${currency.toUpperCase()} address`);
+                if (!to) {
+                    throw new Error(`Address must not be empty`);
+                }
+                await depositAddresses.burn(currency, to, amount);
+                const id: string = Date();
+                events = events.set(id, new Burn({
+                    id,
+                    currency,
+                    amount,
+                    to,
+                    messageID: "",
+                    burnTransaction: undefined,
+                }));
+                props.actions.setEvents(events);
+            } catch (error) {
+                console.error(error);
+                setError(`${error && error.toString ? error.toString() : error}`);
+            }
         }
-        setRedeemingOnEthereum(redeemingOnEthereum.set(id, true));
-        try {
-            // const web3 = await getWeb3();
-        } catch (error) {
-            setError(`${error && error.toString ? error.toString() : error}`);
-        }
-        setRedeemingOnEthereum(redeemingOnEthereum.remove(id));
     };
 
     return <div className="swap container">
@@ -209,8 +246,8 @@ const SwapControllerClass = (props: Props) => {
         {error ? <p className="red">{error}</p> : null}
         {depositAddresses ?
             <div className={`swap--bottom ${blur ? "blur" : ""}`}>
-                <CurrenciesBlock depositAddresses={depositAddresses} />
-                <ShowUTXOs checking={checking} onRefresh={onRefresh} utxos={utxos} utxoToMessage={utxoToMessage} redeemedUTXOs={redeemedUTXOs} redeeming={redeeming} onRedeem={onRedeem} renVMMessages={renVMMessages} signatures={signatures} redeemingOnEthereum={redeemingOnEthereum} checkingResponse={checkingResponse} messageToUtxos={messageToUtxos} redeemOnEthereum={redeemOnEthereum} checkForResponse={checkForResponse} />
+                <CurrenciesBlock burn={burn} depositAddresses={depositAddresses} />
+                <ShowUTXOs checking={checking} onRefresh={onRefresh} events={events} redeeming={redeeming} onRedeem={onRedeem} checkingResponse={checkingResponse} checkForResponse={checkForResponse} />
             </div> : null}
     </div >;
 };
@@ -218,23 +255,15 @@ const SwapControllerClass = (props: Props) => {
 const mapStateToProps = (state: ApplicationData) => ({
     store: {
         ethereumAddress: state.general.ethereumAddress,
-        redeemedUTXOs: state.general.redeemedUTXOs,
         darknodeGroup: state.general.darknodeGroup,
-        renVMMessages: state.general.renVMMessages,
-        utxoToMessage: state.general.utxoToMessage,
-        messageToUtxos: state.general.messageToUtxos,
-        signatures: state.general.signatures,
+        events: state.general.events,
     }
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         setEthereumAddress,
-        addToRedeemedUTXOs,
-        addToRenVMMessages,
-        addToSignatures,
-        addToUtxoToMessage,
-        addToMessageToUtxos,
+        setEvents,
     }, dispatch)
 });
 

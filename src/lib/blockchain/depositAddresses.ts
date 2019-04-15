@@ -83,7 +83,7 @@ export class DepositAddresses {
         const zecDepositAddress = this.depositAddresses.get(Currency.ZEC);
         if (zecDepositAddress) {
             try {
-                const newZcashUTXOs: Array<{ currency: Currency.ZEC, utxo: BitcoinUTXO }> = (await getZECTestnetUTXOs(zecDepositAddress, limit, confirmations)).map(utxo => ({ currency: Currency.ZEC, utxo }));
+                const newZcashUTXOs: Array<{ currency: Currency.ZEC, utxo: ZcashUTXO }> = (await getZECTestnetUTXOs(zecDepositAddress, limit, confirmations)).map(utxo => ({ currency: Currency.ZEC, utxo }));
                 utxos = utxos.concat(List(newZcashUTXOs));
             } catch (error) {
                 console.error(error);
@@ -156,6 +156,8 @@ export class DepositAddresses {
         const toHex = currency === Currency.BTC ? btcAddressToHex(to) :
             currency === Currency.ZEC ? zecAddressToHex(to) :
                 to;
+
+        console.log(toHex);
 
         await contract.methods.burn(toHex, new BigNumber(amount).multipliedBy(10 ** CurrencyDecimals(currency)).toFixed()).send({ from: this.receiveAddress });
     }

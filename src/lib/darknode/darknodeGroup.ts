@@ -1,5 +1,7 @@
 import { List, Map } from "immutable";
 
+import { Mint } from "../../store/types/general";
+import { Currency, UTXO } from "../blockchain/depositAddresses";
 import { MultiAddress, multiAddressToID, NewMultiAddress } from "../types/types";
 import { Darknode } from "./darknode";
 import {
@@ -10,7 +12,6 @@ import {
     SendMessageRequest,
     SendMessageResponse,
 } from "./types";
-import { UTXO, Currency } from "../blockchain/depositAddresses";
 
 const bootStrapNode0 = NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
 const bootStrapNode1 = NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
@@ -161,12 +162,11 @@ export class WarpGateGroup extends DarknodeGroup {
         })).toList();
     }
 
-    public checkForResponse = async (messages: List<{ messageID: string, multiAddress: MultiAddress }>): Promise<string> => {
-        for (const { messageID, multiAddress } of messages.toArray()) {
-            const node = this.darknodes.get(multiAddressToID(multiAddress).id);
+    public checkForResponse = async (mintEvent: Mint): Promise<string> => {
+        for (const node of this.darknodes.valueSeq().toArray()) {
             if (node) {
                 try {
-                    const signature = await node.receiveMessage({ messageID }) as RenVMReceiveMessageResponse;
+                    const signature = await node.receiveMessage({ messageID: mintEvent.messageID }) as RenVMReceiveMessageResponse;
                     // Error:
                     // { "jsonrpc": "2.0", "version": "0.1", "error": { "code": -32603, "message": "result not available", "data": null }, "id": null }
                     // Success:
