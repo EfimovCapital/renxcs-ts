@@ -16,7 +16,7 @@ self.__precacheManifest = [
     "url": "/renxcs-ts/static/js/runtime~main.9e94aeb8.js"
   },
   {
-    "revision": "35961d7016c5141d4d8f",
+    "revision": "8a9525592eeb0dffc0d7",
     "url": "/renxcs-ts/static/js/main.3d4b7637.chunk.js"
   },
   {
@@ -24,15 +24,15 @@ self.__precacheManifest = [
     "url": "/renxcs-ts/static/js/2.1639eb8b.chunk.js"
   },
   {
-    "revision": "35961d7016c5141d4d8f",
-    "url": "/renxcs-ts/static/css/main.8dd61369.chunk.css"
+    "revision": "8a9525592eeb0dffc0d7",
+    "url": "/renxcs-ts/static/css/main.48d810de.chunk.css"
   },
   {
     "revision": "41d0bd2fe32b65862774",
     "url": "/renxcs-ts/static/css/2.b6713031.chunk.css"
   },
   {
-    "revision": "3006f127293a2328976e1b591cadab73",
+    "revision": "93fb02cfc17d82079b3f3546b8eb787e",
     "url": "/renxcs-ts/index.html"
   }
 ];
