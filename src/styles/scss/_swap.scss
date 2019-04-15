@@ -30,4 +30,8 @@
         font-size: 14px !important;
         letter-spacing: 1px;
     }
+
+    h3+.button {
+        margin-bottom: 0;
+    }
 }
