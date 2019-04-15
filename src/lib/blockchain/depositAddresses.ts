@@ -158,5 +158,6 @@ export class DepositAddresses {
                 to;
 
         await contract.methods.burn(toHex, new BigNumber(amount).multipliedBy(10 ** CurrencyDecimals(currency)).toFixed()).send({ from: this.receiveAddress });
+        console.log("Returned from burn call.");
     }
 }

@@ -1,0 +1,84 @@
+.currencies {
+    @extend .hide-scrollbar;
+
+
+    display: flex;
+    align-items: flex-start;
+    width: calc(100% + 20px);
+    margin-left: -10px;
+    margin-right: -10px;
+    overflow-x: scroll;
+
+}
+
+.currency {
+    cursor: pointer;
+    width: 150px;
+    height: 80px;
+    border-radius: 8px;
+    margin: 0 10px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: 200% auto;
+    transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+    min-width: 150px;
+    text-align: center;
+
+    &.active {
+        width: 100%;
+        min-width: 550px;
+        cursor: initial;
+    }
+
+    svg {
+        transform: scale(3);
+    }
+
+    &.btc {
+        // background: #F09242;
+        background-image: linear-gradient(to right, #F09242 0%, #F7BB97 51%, #F09242 100%);
+
+        circle {
+            fill: none;
+        }
+
+        &:hover,
+        &.active {
+            background-position: right center;
+        }
+    }
+
+    &.zec {
+        background-image: linear-gradient(to right, rgb(244, 183, 40) 0%, rgb(252, 224, 160) 51%, rgb(244, 183, 40) 100%);
+        fill: white !important;
+
+        path {
+            fill: white;
+        }
+
+        circle {
+            fill: none;
+        }
+
+        &:hover,
+        &.active {
+            background-position: right center;
+        }
+    }
+
+    &.eth {
+        // background: #627eea;
+        background-image: linear-gradient(to right, #627eea 0%, rgb(151, 193, 247) 51%, #627eea 100%);
+
+        circle {
+            fill: none;
+        }
+
+        &:hover,
+        &.active {
+            background-position: right center;
+        }
+    }
+}
