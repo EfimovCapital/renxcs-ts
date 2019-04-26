@@ -137,7 +137,7 @@ export class WarpGateGroup extends DarknodeGroup {
         }
 
         const results = await this.sendMessage({
-            nonce: 0,
+            nonce: window.crypto.getRandomValues(new Uint32Array(1))[0],
             to: "WarpGate",
             signature: "",
             payload: {

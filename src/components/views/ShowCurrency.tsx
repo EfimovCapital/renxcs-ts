@@ -53,7 +53,7 @@ export const ShowCurrency = ({ currency, index, depositAddresses, burn }: Props)
         {expanded ?
             <div className={`deposit-address ${currency}`}>
                 <div>
-                    <span>Balance: {balance} {currency.toUpperCase()}{balance && balance !== "0" ? <>{" "}(<a role="button" href="null" onClick={handleBurn}>Burn</a>)</> : null}</span><br />
+                    <span>Balance: {balance} z{currency.toUpperCase()}{balance && balance !== "0" ? <>{" "}(<a role="button" href="null" onClick={handleBurn}>Burn</a>)</> : null}</span><br />
                     {error ? <><span className="red">{error}</span><br /></> : null}
                     <span>Deposit to <b>{depositAddresses.depositAddresses.get(currency)}</b></span>
                 </div>
