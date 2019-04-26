@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 
-import { MultiAddress } from "../types/types";
 import {
     AddressesRequest,
     AddressesResponse,
@@ -14,30 +13,28 @@ import {
     SendMessageResponse,
 } from "./types";
 
-export class Darknode {
-    public multiAddress: MultiAddress;
-    private readonly url: string;
+export class Lightnode {
+    public readonly lightnodeURL: string;
 
-    constructor(multiAddress: MultiAddress) {
-        this.multiAddress = multiAddress;
-        if (multiAddress.multiAddress.charAt(0) === "/") {
-            try {
-                const [_, _ip4, ip, _tcp, port, _ren, _id] = multiAddress.multiAddress.split("/");
-                const fixedPort = port === "18514" ? "18515" : port;
-                // tslint:disable-next-line: no-http-string
-                this.url = `http://${ip}:${fixedPort}`;
-            } catch (error) {
-                throw new Error(`Malformatted multiAddress: ${multiAddress}`);
-            }
-        } else {
-            this.url = multiAddress.multiAddress;
-        }
+    constructor(lightnode: string) {
+        this.lightnodeURL = lightnode;
+        // if (multiAddress.multiAddress.charAt(0) === "/") {
+        //     try {
+        //         const [_, _ip4, ip, _tcp, port, _ren, _id] = multiAddress.multiAddress.split("/");
+        //         const fixedPort = port === "18514" ? "18515" : port;
+        //         // tslint:disable-next-line: no-http-string
+        //         this.url = `http://${ip}:${fixedPort}`;
+        //     } catch (error) {
+        //         throw new Error(`Malformatted multiAddress: ${multiAddress}`);
+        //     }
+        // } else {
+        // }
     }
 
     public async getHealth(): Promise<HealthResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_healthCheck"));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_healthCheck"));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -56,7 +53,7 @@ export class Darknode {
     public async getPeers(): Promise<PeersResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryPeers"));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_queryPeers"));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -75,7 +72,7 @@ export class Darknode {
     public async getNumberOfPeers(): Promise<NumPeersResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryNumPeers"));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_queryNumPeers"));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -94,7 +91,7 @@ export class Darknode {
     public async getEpoch(): Promise<EpochResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryEpoch"));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_queryEpoch"));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -113,7 +110,7 @@ export class Darknode {
     public async getAddresses(request: AddressesRequest): Promise<AddressesResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_queryAddresses", request));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_queryAddresses", request));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -132,7 +129,7 @@ export class Darknode {
     public async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_sendMessage", request));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_sendMessage", request));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
@@ -151,7 +148,7 @@ export class Darknode {
     public async receiveMessage(request: ReceiveMessageRequest): Promise<ReceiveMessageResponse> {
         let resp;
         try {
-            resp = await axios.post(`${this.url}`, this.generatePayload("ren_receiveMessage", request));
+            resp = await axios.post(`${this.lightnodeURL}`, this.generatePayload("ren_receiveMessage", request));
             if (resp.status !== 200) {
                 throw this.responseError("Unexpected status code returned by Darknode", resp);
             }
