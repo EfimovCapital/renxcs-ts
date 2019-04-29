@@ -81,7 +81,7 @@ export const ShowUTXO = (props: Props) => {
             {showCircle(event.mintTransaction ? 100 : 66)}
             <div className="utxo--right">
                 <span>Deposited <b>{valuesString}</b></span>
-                <span className="utxo--txid">{event.mintTransaction ? <>Redeemed ({event.mintTransaction}).</> : <>Sent to <b>{event.messageIDs.size} darknodes</b>. Awaiting response.</>}</span>
+                <span className="utxo--txid">{event.mintTransaction ? <>Redeemed ({event.mintTransaction}).</> : <>Sent to <b>{event.messageIDs.size} lightnodes</b>. Awaiting response.</>}</span>
                 {/* <span>
                                     {messageUtxos ? messageUtxos.map(utxo => <span key={utxo.txHash} className="utxo--txid">{utxo.txHash.slice(0, 8)}...</span>).toArray() : null}
                                 </span> */}

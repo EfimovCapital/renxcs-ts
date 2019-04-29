@@ -2,36 +2,40 @@ import { List, Map } from "immutable";
 
 import { Mint } from "../../store/types/general";
 import { Currency, UTXO } from "../blockchain/depositAddresses";
-import { MultiAddress, multiAddressToID, NewMultiAddress } from "../types/types";
-import { Darknode } from "./darknode";
+import { Lightnode } from "./darknode";
 import {
     HealthResponse,
     ReceiveMessageRequest,
     ReceiveMessageResponse,
     RenVMReceiveMessageResponse,
     SendMessageRequest,
+    // tslint:disable-next-line: no-unused-variable
     SendMessageResponse,
 } from "./types";
 
-const bootStrapNode0 = NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
-const bootStrapNode1 = NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
-const bootStrapNode2 = NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
-const bootStrapNode3 = NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
-const bootStrapNode4 = NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
-const bootStrapNode5 = NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
-const bootStrapNode6 = NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
-const bootStrapNode7 = NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
-
-export const bootstrapNodes = [
-    bootStrapNode0,
-    bootStrapNode1,
-    bootStrapNode2,
-    bootStrapNode3,
-    bootStrapNode4,
-    bootStrapNode5,
-    bootStrapNode6,
-    bootStrapNode7,
+export const lightnodes = [
+    "https://lightnode.herokuapp.com",
 ];
+
+// const bootStrapNode0 = NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP");
+// const bootStrapNode1 = NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte");
+// const bootStrapNode2 = NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb");
+// const bootStrapNode3 = NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r");
+// const bootStrapNode4 = NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH");
+// const bootStrapNode5 = NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8");
+// const bootStrapNode6 = NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45");
+// const bootStrapNode7 = NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj");
+
+// export const bootstrapNodes = [
+//     bootStrapNode0,
+//     bootStrapNode1,
+//     bootStrapNode2,
+//     bootStrapNode3,
+//     bootStrapNode4,
+//     bootStrapNode5,
+//     bootStrapNode6,
+//     bootStrapNode7,
+// ];
 
 const promiseAll = async <a>(list: List<Promise<a>>, defaultValue: a): Promise<List<a>> => {
     let newList = List<a>();
@@ -49,44 +53,44 @@ const promiseAll = async <a>(list: List<Promise<a>>, defaultValue: a): Promise<L
  * DarknodeGroup allows sending messages to multiple darknodes
  */
 export class DarknodeGroup {
-    public bootstraps = List<MultiAddress>();
-    public darknodes = Map<string, Darknode>();
+    public bootstraps = List<string>();
+    public darknodes = Map<string, Lightnode>();
 
-    constructor(multiAddresses: MultiAddress[] | MultiAddress) {
+    constructor(multiAddresses: string[] | string) {
         if (Array.isArray(multiAddresses)) {
             this.bootstraps = this.bootstraps.concat(multiAddresses);
-            this.addDarknodes(multiAddresses);
+            this.addLightnodes(multiAddresses);
         } else {
-            this.addDarknodes([multiAddresses]);
+            this.addLightnodes([multiAddresses]);
         }
         this.bootstraps = this.bootstraps.concat(multiAddresses);
     }
 
-    public bootstrap = async (): Promise<this> => {
-        let success = false;
-        let lastError;
-        for (const multiAddress of this.bootstraps.toArray()) {
-            try {
-                const result: Darknode | undefined = this.darknodes.get(multiAddressToID(multiAddress).id);
-                if (!result) {
-                    throw new Error("No darknode provided");
-                }
-                const peers = await result.getPeers();
-                if (peers.result) {
-                    this.addDarknodes(peers.result.peers.map(NewMultiAddress));
-                    success = true;
-                } else if (peers.error) {
-                    throw peers.error;
-                }
-            } catch (error) {
-                lastError = error;
-            }
-        }
-        if (!success) {
-            throw lastError;
-        }
-        return this;
-    }
+    // public bootstrap = async (): Promise<this> => {
+    //     let success = false;
+    //     let lastError;
+    //     for (const multiAddress of this.bootstraps.toArray()) {
+    //         try {
+    //             const result: Lightnode | undefined = this.darknodes.get(multiAddressToID(multiAddress).id);
+    //             if (!result) {
+    //                 throw new Error("No darknode provided");
+    //             }
+    //             const peers = await result.getPeers();
+    //             if (peers.result) {
+    //                 this.addLightnodes(peers.result.peers.map(NewMultiAddress));
+    //                 success = true;
+    //             } else if (peers.error) {
+    //                 throw peers.error;
+    //             }
+    //         } catch (error) {
+    //             lastError = error;
+    //         }
+    //     }
+    //     if (!success) {
+    //         throw lastError;
+    //     }
+    //     return this;
+    // }
 
     public getHealth = async (): Promise<List<HealthResponse | null>> => {
         return promiseAll<HealthResponse | null>(
@@ -95,10 +99,10 @@ export class DarknodeGroup {
         );
     }
 
-    public sendMessage = async (request: SendMessageRequest): Promise<List<{ result: SendMessageResponse, multiAddress: MultiAddress } | null>> => {
-        return promiseAll<{ result: SendMessageResponse, multiAddress: MultiAddress } | null>(
+    public sendMessage = async (request: SendMessageRequest): Promise<List<{ result: SendMessageResponse, lightnode: string } | null>> => {
+        return promiseAll(
             this.darknodes.valueSeq().map(async (darknode) => ({
-                multiAddress: darknode.multiAddress,
+                lightnode: darknode.lightnodeURL,
                 result: await darknode.sendMessage(request),
             })).toList(),
             null,
@@ -112,21 +116,21 @@ export class DarknodeGroup {
         );
     }
 
-    private readonly addDarknodes = (multiAddresses: MultiAddress[]): this => {
-        for (const multiAddress of multiAddresses) {
-            this.darknodes = this.darknodes.set(multiAddressToID(multiAddress).id, new Darknode(multiAddress));
+    private readonly addLightnodes = (newLightnodes: string[]): this => {
+        for (const lightnode of newLightnodes) {
+            this.darknodes = this.darknodes.set(lightnode, new Lightnode(lightnode));
         }
         return this;
     }
 }
 
 export class WarpGateGroup extends DarknodeGroup {
-    constructor(multiAddresses: MultiAddress[] | MultiAddress) {
+    constructor(multiAddresses: string[] | string) {
         super(multiAddresses);
         // this.getHealth();
     }
 
-    public submitDeposits = async (address: string, utxo: UTXO): Promise<List<{ messageID: string, multiAddress: MultiAddress }>> => {
+    public submitDeposits = async (address: string, utxo: UTXO): Promise<List<{ messageID: string, lightnode: string }>> => {
         // TODO: If one fails, still return the other.
 
         const method = utxo.currency === Currency.BTC ? "MintZBTC"
@@ -151,12 +155,12 @@ export class WarpGateGroup extends DarknodeGroup {
         });
 
         if (results.filter(x => x !== null).size < 1) {
-            throw new Error("Unable to send message to enough darknodes.");
+            throw new Error("Unable to send message to lightnodes.");
         }
 
         return results.filter(x => x !== null).map((result) => ({
             // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
-            multiAddress: result!.multiAddress,
+            lightnode: result!.lightnode,
             messageID: result!.result.result!.messageID,
             // tslint:enable: no-non-null-assertion no-unnecessary-type-assertion
         })).toList();

@@ -4,7 +4,7 @@ import { List, Map as ImmutableMap, OrderedMap } from "immutable";
 import { BitcoinUTXO } from "../../lib/blockchain/btc/btc";
 import { ZcashUTXO } from "../../lib/blockchain/btc/zec";
 import { Currency as XCSCurrency, UTXO } from "../../lib/blockchain/depositAddresses";
-import { bootstrapNodes, WarpGateGroup } from "../../lib/darknode/darknodeGroup";
+import { lightnodes, WarpGateGroup } from "../../lib/darknode/darknodeGroup";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../../lib/util/errors";
 import { validateType } from "../../lib/util/persist";
 
@@ -66,7 +66,7 @@ const GeneralDataInner = {
 
     allEvents: ImmutableMap<string, OrderedMap<string, XCSEvent>>(),
 
-    darknodeGroup: new WarpGateGroup(bootstrapNodes),
+    darknodeGroup: new WarpGateGroup(lightnodes),
 
     // UI
     advanced: false,
