@@ -148,6 +148,8 @@ export class WarpGateGroup extends DarknodeGroup {
                 method,
                 args: [
                     {
+                        name: "uid",
+                        type: "public",
                         value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
                     }
                 ],
@@ -176,7 +178,7 @@ export class WarpGateGroup extends DarknodeGroup {
                     // Success:
                     // (TODO)
                     if (signature.result) {
-                        return signature.result.result[0].value;
+                        return signature.result.values[0].value;
                     } else if (signature.error) {
                         throw signature.error;
                     }
